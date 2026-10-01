@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Propuestas de layout · DevFest Quito 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600&family=Kalam:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/layouts-preview.css">
+</head>
+<body data-layout="a">
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="g-spark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FBBC04"/><stop offset=".35" stop-color="#EA4335"/><stop offset=".65" stop-color="#A142F4"/><stop offset="1" stop-color="#1A73E8"/>
+    </linearGradient>
+    <linearGradient id="g-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4C94FF"/><stop offset="1" stop-color="#1A5FD6"/></linearGradient>
+    <linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4CCB72"/><stop offset="1" stop-color="#1E8E3E"/></linearGradient>
+    <linearGradient id="g-orange" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB53D"/><stop offset="1" stop-color="#F26B1D"/></linearGradient>
+    <linearGradient id="g-red" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6B5A"/><stop offset="1" stop-color="#D93025"/></linearGradient>
+    <linearGradient id="g-yellow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD54A"/><stop offset="1" stop-color="#F29900"/></linearGradient>
+    <linearGradient id="g-ticket-blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5AA2FF"/><stop offset="1" stop-color="#1A5FD6"/></linearGradient>
+  </defs>
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M4 10h12M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.6 7-12.2A7 7 0 0 0 5 9.8C5 15.4 12 22 12 22Z" fill="currentColor"/><circle cx="12" cy="9.8" r="2.6" fill="#fff"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="currentColor"/><path d="m6 10.2 2.6 2.6L14 7.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <!-- agenda -->
+  <symbol id="a-badge" viewBox="0 0 48 48"><rect x="6" y="9" width="36" height="28" rx="6" fill="url(#g-blue)"/><rect x="12" y="17" width="16" height="4" rx="2" fill="#fff"/><rect x="12" y="25" width="10" height="4" rx="2" fill="#fff" opacity=".7"/><path d="M20 37h8l-2 5h-4z" fill="#1A5FD6"/></symbol>
+  <symbol id="a-mic" viewBox="0 0 48 48"><rect x="17" y="5" width="14" height="24" rx="7" fill="url(#g-green)"/><path d="M11 22a13 13 0 0 0 26 0" fill="none" stroke="#1E8E3E" stroke-width="3.5" stroke-linecap="round"/><path d="M24 35v7M17 43h14" stroke="#1E8E3E" stroke-width="3.5" stroke-linecap="round"/></symbol>
+  <symbol id="a-spark" viewBox="0 0 48 48"><path d="M24 3c1.6 10.6 5.4 15.6 21 21-15.6 5.4-19.4 10.4-21 21-1.6-10.6-5.4-15.6-21-21 15.6-5.4 19.4-10.4 21-21Z" fill="url(#g-spark)"/></symbol>
+  <symbol id="a-people" viewBox="0 0 48 48"><circle cx="12" cy="15" r="5.5" fill="#1A73E8"/><circle cx="24" cy="12" r="6.5" fill="#EA4335"/><circle cx="36" cy="15" r="5.5" fill="#34A853"/><path d="M3 34c0-6 4-10 9-10s9 4 9 10v3H3z" fill="#1A73E8"/><path d="M27 34c0-6 4-10 9-10s9 4 9 10v3H27z" fill="#FBBC04"/><path d="M13 36c0-7.5 5-12.5 11-12.5S35 28.5 35 36v4H13z" fill="#34A853"/></symbol>
+  <symbol id="a-panel" viewBox="0 0 48 48"><circle cx="19" cy="21" r="13" fill="url(#g-blue)"/><circle cx="30" cy="28" r="13" fill="url(#g-orange)" opacity=".92"/></symbol>
+  <symbol id="a-music" viewBox="0 0 48 48"><path d="M18 34V11l22-5v24" fill="none" stroke="url(#g-blue)" stroke-width="5" stroke-linejoin="round"/><ellipse cx="12.5" cy="35" rx="7" ry="5.5" fill="#1A73E8"/><ellipse cx="34.5" cy="30" rx="7" ry="5.5" fill="#1A5FD6"/></symbol>
+  <symbol id="a-rocket" viewBox="0 0 48 48"><path d="M30 6c7 1 11 5 12 12-2 8-9 15-17 19l-14-14C15 15 22 8 30 6Z" fill="url(#g-orange)"/><circle cx="31" cy="17" r="4.5" fill="#fff"/><path d="M11 23 5 25l5-9 7-1zM25 37l-2 6 9-5 1-7z" fill="#EA4335"/><path d="M13 35c-3 0-6 3-6 6 3 0 6-3 6-6Z" fill="#FBBC04"/></symbol>
+  <symbol id="a-learn" viewBox="0 0 48 48"><path d="M24 8 3 18l21 10 21-10z" fill="url(#g-blue)"/><path d="M11 23v9c0 4 6 7 13 7s13-3 13-7v-9l-13 6z" fill="#1A5FD6"/><path d="M42 19v12" stroke="#FBBC04" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="33" r="3" fill="#FBBC04"/></symbol>
+  <!-- tickets -->
+  <symbol id="t-ticket" viewBox="0 0 64 48"><path d="M8 10a4 4 0 0 1 4-4h40a4 4 0 0 1 4 4v7a7 7 0 0 0 0 14v7a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4v-7a7 7 0 0 0 0-14z" fill="currentColor"/><path d="M8 10a4 4 0 0 1 4-4h40a4 4 0 0 1 4 4v4H8z" fill="#fff" opacity=".22"/><path d="M42 9v30" stroke="#fff" stroke-width="2" stroke-dasharray="3 4" opacity=".6"/></symbol>
+  <!-- social -->
+  <symbol id="s-x" viewBox="0 0 24 24"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.3l-4.9-6.4L5.2 21H2.1l7.3-8.3L1.8 3h6.4l4.4 5.9zm-1.1 16.2h1.7L7.4 4.7H5.6z" fill="currentColor"/></symbol>
+  <symbol id="s-in" viewBox="0 0 24 24"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4v11H3zM9.5 9.5h3.8v1.6c.6-1 1.9-1.9 3.8-1.9 4 0 4.4 2.6 4.4 5.9v5.4h-4v-4.8c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7v4.9h-4z" fill="currentColor"/></symbol>
+  <symbol id="s-ig" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/></g><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="s-yt" viewBox="0 0 24 24"><path d="M22 8.2a3 3 0 0 0-2.1-2.1C18 5.6 12 5.6 12 5.6s-6 0-7.9.5A3 3 0 0 0 2 8.2 31 31 0 0 0 1.6 12 31 31 0 0 0 2 15.8a3 3 0 0 0 2.1 2.1c1.9.5 7.9.5 7.9.5s6 0 7.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .4-3.8 31 31 0 0 0-.4-3.8zM10 15V9l5.2 3z" fill="currentColor"/></symbol>
+  <symbol id="s-dc" viewBox="0 0 24 24"><path d="M19.3 5.3A17 17 0 0 0 15 4l-.5 1.1a15.6 15.6 0 0 0-5 0L9 4a17 17 0 0 0-4.3 1.3C2 9.4 1.3 13.4 1.6 17.3A17 17 0 0 0 6.9 20l1.1-1.8a11 11 0 0 1-1.8-.9l.4-.3a12.2 12.2 0 0 0 10.8 0l.4.3a11 11 0 0 1-1.8.9l1.1 1.8a17 17 0 0 0 5.3-2.7c.4-4.5-.7-8.5-3.1-12zM8.5 14.9c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1zm7 0c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1z" fill="currentColor"/></symbol>
+  <!-- GDG mark -->
+  <symbol id="gdg" viewBox="0 0 64 40"><g stroke-width="9" stroke-linecap="round" fill="none"><path d="M24 7 8 20" stroke="#EA4335"/><path d="M8 20l16 13" stroke="#1A73E8"/><path d="M40 7l16 13" stroke="#34A853"/><path d="M56 20 40 33" stroke="#FBBC04"/></g></symbol>
+</svg>
+
+<div class="switcher" role="tablist" aria-label="Propuestas de layout">
+  <span class="switcher__label">Layout</span>
+  <button role="tab" data-l="a" aria-selected="true"><b>A</b> Editorial numerado</button>
+  <button role="tab" data-l="b" aria-selected="false"><b>B</b> Bandas a todo el ancho</button>
+  <button role="tab" data-l="c" aria-selected="false"><b>C</b> Título fijo + contenido</button>
+</div>
+
+<header class="preview-head container">
+  <p class="eyebrow">Propuestas de layout · DevFest Quito 2026</p>
+  <h1 class="preview-title" data-t="a">A · Editorial numerado</h1>
+  <h1 class="preview-title" data-t="b">B · Bandas a todo el ancho</h1>
+  <h1 class="preview-title" data-t="c">C · Título fijo + contenido</h1>
+  <p class="preview-desc" data-t="a">Sin paneles: cada sección va directo sobre el fondo, separada por una línea fina a todo el ancho y un índice grande. Títulos enormes, tarjetas sueltas y planas.</p>
+  <p class="preview-desc" data-t="b">Cada sección es una franja de color de borde a borde, sin esquinas: blanco, oscuro para Entradas y azul claro. El ritmo lo marca el color.</p>
+  <p class="preview-desc" data-t="c">El título grande queda fijo a la izquierda mientras el contenido pasa a la derecha en forma de lista. Líneas finas separan las secciones. Haz scroll para verlo.</p>
+</header>
+
+<main class="lay">
+<section class="block container" id="asistir">
+    <div class="block__intro">
+      <p class="idx" aria-hidden="true">01</p>
+      <p class="eyebrow">¿Por qué asistir?</p>
+      <span class="rule" aria-hidden="true"></span>
+      <h2>Un día para conectar, aprender y despegar.</h2>
+      <p>Charlas, paneles, talleres y networking de alto nivel para impulsar tu propio camino emprendedor.</p>
+      <a href="#entradas" class="btn btn--primary btn--sm">Asegura tu lugar <svg><use href="#i-arrow"/></svg></a>
+      <div class="when">
+        <svg><use href="#i-cal"/></svg>
+        <div><b>Sábado, 26 de septiembre · 8:30 a. m.</b><span>Campus USFQ · Cumbayá, Quito</span></div>
+      </div>
+    </div>
+    <div class="block__body">
+      <div class="reasons">
+        <article class="session" style="--tag:#A142F4">
+          <svg class="session__ico"><use href="#a-spark"/></svg>
+          <h3>Inspiración y tendencias</h3><p>Charlas y paneles con líderes clave del ecosistema emprendedor y tecnológico.</p>
+          <footer><span class="tag">Charlas · Paneles</span></footer>
+        </article>
+        <article class="session" style="--tag:#1A73E8">
+          <svg class="session__ico"><use href="#a-people"/></svg>
+          <h3>Networking masivo</h3><p>Conecta con más de 2.000 desarrolladores, emprendedores, inversionistas y entusiastas de la tecnología.</p>
+          <footer><span class="tag">+2.000 personas</span></footer>
+        </article>
+        <article class="session" style="--tag:#F26B1D">
+          <svg class="session__ico"><use href="#a-rocket"/></svg>
+          <h3>Impulso startupero</h3><p>Conoce el trabajo de Nestlab USFQ y descubre herramientas para acelerar tu proyecto.</p>
+          <footer><span class="tag">Nestlab USFQ</span></footer>
+        </article>
+        <article class="session" style="--tag:#1E8E3E">
+          <svg class="session__ico"><use href="#a-learn"/></svg>
+          <h3>Aprendizaje continuo</h3><p>Talleres y conferencias sobre las últimas tecnologías e innovaciones.</p>
+          <footer><span class="tag">Talleres · Conferencias</span></footer>
+        </article>
+      </div>
+    </div>
+  </section>
+
+<section class="block container" id="entradas">
+    <div class="block__intro">
+      <p class="idx" aria-hidden="true">02</p>
+      <p class="eyebrow">Entradas</p>
+      <span class="rule" aria-hidden="true"></span>
+      <h2>Sé parte del DevFest Quito 2026</h2>
+      <p>La entrada Community es gratis y abierta. Las entradas pagadas ya cerraron sus ventas.</p>
+    </div>
+    <div class="block__body">
+      <div class="passes">
+        <article class="pass pass--featured" style="--c:#1A73E8;--c2:#4C94FF">
+          <span class="pass__badge">Quedan 328</span>
+          <svg class="pass__ticket" style="color:#2F7BF0"><use href="#t-ticket"/></svg>
+          <h3>Community</h3>
+          <p class="pass__price">$0</p>
+          <p class="pass__desc">Swag general: desde un tomatodo hasta una gorra, stickers y algún que otro goodie, más snacks. Totalmente gratis y abierto.</p>
+          <p class="pass__note">Si llegan más personas de las previstas puede que el swag no alcance, pero igual puedes entrar y disfrutar del contenido.</p>
+          <a href="#registro" class="btn btn--block" data-pass="Community">Regístrate gratis <svg><use href="#i-arrow"/></svg></a>
+        </article>
+        <article class="pass pass--closed" style="--c:#1E8E3E;--c2:#4CCB72">
+          <span class="pass__status">Entradas agotadas</span>
+          <svg class="pass__ticket" style="color:#34A853"><use href="#t-ticket"/></svg>
+          <h3>Community Junior</h3>
+          <p class="pass__price">$15</p>
+          <p class="pass__desc">Todo lo que tiene Community más la camiseta del evento.</p>
+          <p class="pass__note">Las ventas cerraron el dom 20 sept, 9:00 a. m.</p>
+          <span class="btn btn--block btn--disabled" aria-disabled="true">Entradas agotadas</span>
+        </article>
+        <article class="pass pass--closed" style="--c:#F29900;--c2:#FFB53D">
+          <span class="pass__status">Entradas agotadas</span>
+          <svg class="pass__ticket" style="color:#FBBC04"><use href="#t-ticket"/></svg>
+          <h3>Community Senior</h3>
+          <p class="pass__price">$30</p>
+          <p class="pass__desc">Todo lo de Community Junior más certificado y almuerzo con speakers durante el día del evento.</p>
+          <p class="pass__note">Las ventas cerraron el dom 20 sept, 9:00 a. m.</p>
+          <span class="btn btn--block btn--disabled" aria-disabled="true">Entradas agotadas</span>
+        </article>
+        <article class="pass pass--closed" style="--c:#E0341F;--c2:#FF6B5A">
+          <span class="pass__status">Ventas cerradas</span>
+          <svg class="pass__ticket" style="color:#EA4335"><use href="#t-ticket"/></svg>
+          <h3>Community Senior Plus</h3>
+          <p class="pass__price">$50</p>
+          <p class="pass__desc">Todo lo de Community Senior más gorra bordada de GDG, meet &amp; greet y panel exclusivo con todos los speakers, con una cerveza incluida.</p>
+          <p class="pass__note">Las ventas cerraron el dom 20 sept, 9:00 a. m.</p>
+          <span class="btn btn--block btn--disabled" aria-disabled="true">Ventas cerradas</span>
+        </article>
+        <article class="pass pass--closed" style="--c:#7B2FD0;--c2:#B26BFF">
+          <span class="pass__status">Ventas cerradas</span>
+          <svg class="pass__ticket" style="color:#A142F4"><use href="#t-ticket"/></svg>
+          <h3>Community Lead</h3>
+          <p class="pass__price">$70</p>
+          <p class="pass__desc">Todo lo de Senior Plus más chiva after party y after-after party con una bebida incluida. Se sorteará una suscripción anual a Platzi.</p>
+          <p class="pass__note">Las ventas cerraron el dom 20 sept, 9:00 a. m.</p>
+          <span class="btn btn--block btn--disabled" aria-disabled="true">Ventas cerradas</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+<section class="block container" id="organizadores">
+    <div class="block__intro">
+      <p class="idx" aria-hidden="true">03</p>
+      <p class="eyebrow">Organizadores</p>
+      <span class="rule" aria-hidden="true"></span>
+      <h2>Hecho por la comunidad GDG Quito.</h2>
+      <p>Las personas que hacen posible el DevFest Quito 2026.</p>
+    </div>
+    <div class="block__body">
+      <div class="team">
+        <article class="member" style="--c:#1A73E8">
+          <span class="member__avatar" aria-hidden="true">AB</span>
+          <div><h3>Alan Bermúdez</h3><p>Organizador de GDG</p><small>Grupo Bolt</small></div>
+        </article>
+        <article class="member" style="--c:#EA4335">
+          <span class="member__avatar" aria-hidden="true">PD</span>
+          <div><h3>Pedro Díaz</h3><p>Organizador de GDG</p><small>Red Planet Tribe</small></div>
+        </article>
+        <article class="member" style="--c:#34A853">
+          <span class="member__avatar" aria-hidden="true">AA</span>
+          <div><h3>Andrés Eduardo Armendáriz</h3><p>Organizador de GDG</p><small>yoet</small></div>
+        </article>
+        <article class="member" style="--c:#F29900">
+          <span class="member__avatar" aria-hidden="true">BA</span>
+          <div><h3>Betsabé Amaguai</h3><p>Organizadora de GDG</p></div>
+        </article>
+        <article class="member" style="--c:#A142F4">
+          <span class="member__avatar" aria-hidden="true">BR</span>
+          <div><h3>Brandon Ramirez</h3><p>Organizador de GDG</p></div>
+        </article>
+        <article class="member" style="--c:#1A73E8">
+          <span class="member__avatar" aria-hidden="true">MR</span>
+          <div><h3>Martín Ruiz</h3><p>Organizador de GDG</p></div>
+        </article>
+        <article class="member" style="--c:#EA4335">
+          <span class="member__avatar" aria-hidden="true">SÁ</span>
+          <div><h3>Sebastián Álvarez</h3><p>Ingeniero de software fullstack sénior</p><small>Galileo Financial Technologies</small></div>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="preview-foot container"><p>Fin de la vista previa · elige A, B o C arriba</p></footer>
+
+<script>
+  const btns=[...document.querySelectorAll('.switcher button')];
+  const set=l=>{document.body.dataset.layout=l;btns.forEach(b=>b.setAttribute('aria-selected',String(b.dataset.l===l)));try{localStorage.setItem('lay',l)}catch(e){};scrollTo({top:0});};
+  btns.forEach(b=>b.addEventListener('click',()=>set(b.dataset.l)));
+  const q=new URLSearchParams(location.search).get('l');let saved=null;try{saved=localStorage.getItem('lay')}catch(e){}
+  set(q||saved||'a');
+</script>
+</body>
+</html>

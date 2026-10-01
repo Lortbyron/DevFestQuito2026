@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pixel World</title>
+<meta name="description" content="Crea tu personaje, tu mundo y una pequeña película en pixel art conversando con una IA. Create your own pixel-art film by talking to an AI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --ink: #120f24; --panel: #1d1838; --panel2: #241a4a; --edge: #3a3266; --shadow: #06040f;
+    --text: #f3e4c4; --muted: #9a90c0; --accent: #ffd23f; --pink: #ff4fd8; --teal: #2de2e6; --green: #4fd16b;
+    --on-accent: #120f24;
+    --pixel: 'Silkscreen', 'Courier New', monospace;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --ink: #f6efe0; --panel: #fffaf0; --panel2: #f2e6cd; --edge: #c4b08a; --shadow: #d3c3a3; --text: #1a1330; --muted: #6a5f7e; --accent: #9a6400; --pink: #c5158f; --teal: #0f7f86; --green: #2b8a3e; --on-accent: #fffaf0; }
+  }
+  :root[data-theme="light"] { --ink: #f6efe0; --panel: #fffaf0; --panel2: #f2e6cd; --edge: #c4b08a; --shadow: #d3c3a3; --text: #1a1330; --muted: #6a5f7e; --accent: #9a6400; --pink: #c5158f; --teal: #0f7f86; --green: #2b8a3e; --on-accent: #fffaf0; }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; background: var(--ink); color: var(--text); }
+  body { font-family: var(--mono); font-size: 15px; line-height: 1.65; overflow-x: hidden; }
+  html[data-lang="es"] [lang="en"], html[data-lang="en"] [lang="es"] { display: none !important; }
+  a { color: var(--teal); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+  h1, h2, h3 { font-family: var(--pixel); font-weight: 700; line-height: 1.12; margin: 0; }
+  h2 { font-size: clamp(20px, 4vw, 30px); display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  h2::before { content: ""; width: 14px; height: 14px; background: var(--accent); box-shadow: 3px 3px 0 var(--shadow); flex: none; }
+  h3 { font-size: 14px; color: var(--accent); margin-bottom: 6px; }
+  p { margin: 0 0 12px; }
+  section { padding: 64px 0 8px; }
+  .lede { font-size: clamp(15px, 2.2vw, 17px); color: var(--muted); max-width: 70ch; }
+  .muted { color: var(--muted); }
+  .px { image-rendering: pixelated; }
+  .hero-grid > *, .two > *, .paths > *, .theater > *, .steps li > * { min-width: 0; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  /* nav */
+  nav.top { position: sticky; top: 0; z-index: 10; background: var(--ink); border-bottom: 2px solid var(--edge); }
+  nav.top .wrap { display: flex; align-items: center; gap: 14px; height: 56px; }
+  .brand { font-family: var(--pixel); font-weight: 700; font-size: 16px; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .brand canvas { width: 24px; height: 24px; }
+  .links { display: flex; gap: 16px; margin-left: auto; font-size: 13px; }
+  .links a { color: var(--muted); text-decoration: none; font-family: var(--pixel); }
+  .links a:hover { color: var(--text); }
+  .lang { display: flex; border: 2px solid var(--edge); }
+  .lang button { box-shadow: none; border: 0; padding: 6px 8px; font-size: 11px; }
+  @media (max-width: 760px) { .links { display: none; } .lang { margin-left: auto; } }
+
+  /* buttons */
+  .btn, button { font: 700 12px/1 var(--pixel); letter-spacing: .04em; color: var(--text); background: var(--panel); border: 2px solid var(--edge); box-shadow: 3px 3px 0 var(--shadow); padding: 11px 14px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .btn:active, button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+  .btn.primary, button[aria-pressed="true"], button[aria-selected="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .btn.pink { background: var(--pink); border-color: var(--pink); color: #fff; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+  /* hero */
+  .hero { padding: 40px 0 0; }
+  .hero-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 32px; align-items: center; }
+  @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; } }
+  .hero h1 { font-size: clamp(30px, 6.4vw, 58px); margin-bottom: 14px; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .tag { display: inline-block; font-family: var(--pixel); font-size: 11px; color: var(--pink); border: 2px solid var(--pink); padding: 4px 8px; margin-bottom: 16px; }
+  .stage { border: 3px solid var(--edge); box-shadow: 8px 8px 0 var(--shadow); background: #0b0a12; line-height: 0; }
+  .stage canvas { width: 100%; height: auto; display: block; }
+  .player { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 3px solid var(--edge); border-top: 0; padding: 8px 10px; box-shadow: 8px 8px 0 var(--shadow); }
+  .player button { padding: 6px 9px; box-shadow: 2px 2px 0 var(--shadow); }
+  .bar { flex: 1; height: 10px; background: var(--panel2); border: 2px solid var(--edge); position: relative; }
+  .bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); width: 0; }
+  .time { font-size: 12px; color: var(--muted); min-width: 64px; text-align: right; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 22px; }
+  .chip { font-size: 12px; border: 2px solid var(--edge); background: var(--panel); padding: 3px 8px; }
+
+  /* cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 20px; }
+  .card { background: var(--panel); border: 2px solid var(--edge); box-shadow: 4px 4px 0 var(--shadow); padding: 16px; }
+  .card p { font-size: 13.5px; margin: 0; }
+  .card .icon { width: 40px; height: 40px; margin-bottom: 10px; }
+
+  /* paths */
+  .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 20px; }
+  @media (max-width: 760px) { .paths { grid-template-columns: 1fr; } }
+  .path { background: var(--panel); border: 3px solid var(--edge); box-shadow: 6px 6px 0 var(--shadow); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .path.build { border-color: var(--accent); }
+  .path .file { font-size: 12px; color: var(--muted); }
+  .path h3 { font-size: 18px; }
+  .path dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13.5px; }
+  .path dt { font-family: var(--pixel); font-size: 11px; color: var(--muted); padding-top: 3px; }
+  .path dd { margin: 0; }
+  .path .row { margin-top: auto; }
+
+  /* steps */
+  .steps { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 12px; counter-reset: s; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 52px 1fr; gap: 14px; align-items: start; background: var(--panel); border: 2px solid var(--edge); padding: 14px; box-shadow: 4px 4px 0 var(--shadow); }
+  .steps li::before { content: counter(s); font-family: var(--pixel); font-weight: 700; font-size: 22px; background: var(--accent); color: var(--on-accent); width: 52px; height: 52px; display: grid; place-items: center; box-shadow: 3px 3px 0 var(--shadow); }
+  .steps h3 { color: var(--text); font-size: 14px; }
+  .steps p { font-size: 13.5px; margin: 0; color: var(--muted); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .tabpanel { font-size: 13.5px; color: var(--text); }
+  .say { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--panel2); border: 2px dashed var(--edge); padding: 10px 12px; margin-top: 8px; }
+  .say q { font-family: var(--pixel); color: var(--accent); font-size: 13px; quotes: "“" "”"; flex: 1; min-width: 200px; }
+  .say button { padding: 6px 9px; font-size: 11px; box-shadow: 2px 2px 0 var(--shadow); }
+
+  /* pipeline */
+  .pipe { display: flex; flex-wrap: wrap; gap: 0; margin-top: 22px; align-items: stretch; }
+  .pipe div { flex: 1 1 140px; background: var(--panel); border: 2px solid var(--edge); padding: 12px; font-size: 12.5px; position: relative; margin: 0 12px 12px 0; }
+  .pipe div b { display: block; font-family: var(--pixel); font-size: 12px; color: var(--teal); margin-bottom: 4px; }
+  .pipe div:not(:last-child)::after { content: ""; position: absolute; right: -12px; top: 50%; width: 12px; height: 4px; background: var(--edge); }
+  .pipe div:last-child { border-color: var(--accent); }
+
+  /* theater */
+  .theater { display: grid; grid-template-columns: 260px 1fr; gap: 18px; margin-top: 22px; }
+  @media (max-width: 860px) { .theater { grid-template-columns: 1fr; } }
+  .demo-list { display: flex; flex-direction: column; gap: 10px; }
+  @media (max-width: 860px) { .demo-list { flex-direction: row; overflow-x: auto; padding-bottom: 8px; } .demo-list button { flex: 0 0 200px; } }
+  .demo-list button { flex-direction: column; align-items: flex-start; text-align: left; gap: 6px; padding: 12px; line-height: 1.3; white-space: normal; }
+  .demo-list button small { font-family: var(--mono); font-weight: 400; font-size: 11.5px; letter-spacing: 0; opacity: .8; }
+  .screen { background: var(--panel); border: 3px solid var(--edge); box-shadow: 8px 8px 0 var(--shadow); min-width: 0; }
+  .screen-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 3px solid var(--edge); font-size: 12px; flex-wrap: wrap; }
+  .screen-bar .dots { display: flex; gap: 5px; } .screen-bar .dots i { width: 10px; height: 10px; display: block; }
+  .screen-bar .path-txt { color: var(--muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .screen-bar a { font-family: var(--pixel); font-size: 11px; }
+  .screen iframe { display: block; width: 100%; border: 0; background: #0b0a12; transition: height .2s; }
+  .screen-cover { display: grid; place-items: center; gap: 14px; padding: 40px 16px; text-align: center; min-height: 360px; }
+  .screen-cover p { max-width: 50ch; color: var(--muted); font-size: 13.5px; }
+  .demo-about { padding: 12px 14px; border-top: 3px solid var(--edge); font-size: 13.5px; }
+
+  /* create */
+  .formats { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-end; margin-top: 18px; }
+  .fmt { text-align: center; font-size: 12px; }
+  .fmt span { display: block; border: 3px solid var(--teal); background: var(--panel2); margin: 0 auto 8px; box-shadow: 4px 4px 0 var(--shadow); }
+  .fmt b { font-family: var(--pixel); display: block; color: var(--text); }
+  .ideas { columns: 2 280px; column-gap: 16px; margin-top: 16px; }
+  .idea { break-inside: avoid; background: var(--panel); border-left: 6px solid var(--pink); padding: 10px 12px; margin-bottom: 12px; font-size: 13.5px; }
+  .idea b { font-family: var(--pixel); font-weight: 400; display: block; font-size: 12px; color: var(--accent); }
+
+  /* code */
+  pre { background: var(--panel2); border: 2px solid var(--edge); padding: 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.55; margin: 0; max-height: 420px; }
+  .code-box { position: relative; margin-top: 14px; }
+  .code-box button { position: absolute; top: 8px; right: 8px; padding: 6px 9px; font-size: 11px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  @media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+  .fixes { display: grid; gap: 10px; margin-top: 14px; }
+  .fix { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; background: var(--panel); border: 2px solid var(--edge); padding: 10px 12px; }
+  .fix b { font-family: var(--pixel); font-weight: 400; font-size: 12px; color: var(--pink); display: block; }
+  .fix span { font-size: 12.5px; color: var(--muted); }
+  .fix button { padding: 6px 9px; font-size: 11px; box-shadow: 2px 2px 0 var(--shadow); }
+  .formula { font-family: var(--pixel); font-size: clamp(15px, 3vw, 22px); background: var(--panel); border: 3px solid var(--accent); padding: 16px; text-align: center; margin: 16px 0; box-shadow: 6px 6px 0 var(--shadow); }
+  .core-map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  @media (max-width: 640px) { .core-map { grid-template-columns: 1fr 1fr; } }
+  .core-map div { border: 2px solid var(--edge); padding: 10px; font-size: 12.5px; background: var(--panel); }
+  .core-map div b { font-family: var(--pixel); font-size: 12px; display: block; }
+  .core-map .edit { border-color: var(--green); } .core-map .edit b { color: var(--green); }
+  .core-map .lock b { color: var(--muted); }
+  ul.plain { padding-left: 18px; margin: 8px 0 0; font-size: 13.5px; }
+  ul.plain li { margin-bottom: 6px; }
+  ul.plain li::marker { content: "■  "; color: var(--accent); font-size: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin-top: 16px; }
+  th, td { border: 2px solid var(--edge); padding: 9px 11px; text-align: left; vertical-align: top; }
+  th { font-family: var(--pixel); font-size: 12px; background: var(--panel2); }
+  .tbl { overflow-x: auto; }
+
+  .cta { margin: 72px 0 0; background: var(--panel); border: 3px solid var(--accent); box-shadow: 8px 8px 0 var(--shadow); padding: 28px 22px; text-align: center; }
+  .cta h2 { justify-content: center; }
+  .cta h2::before { display: none; }
+  footer { margin-top: 56px; border-top: 2px solid var(--edge); padding: 20px 0 40px; font-size: 12.5px; color: var(--muted); }
+  .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--on-accent); font-family: var(--pixel); font-size: 12px; padding: 10px 14px; box-shadow: 4px 4px 0 var(--shadow); opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 20; }
+  .toast.on { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<nav class="top" aria-label="Principal">
+  <div class="wrap">
+    <a class="brand" href="#top"><canvas class="px icon" data-icon="hero" width="8" height="8" aria-hidden="true"></canvas>Pixel World</a>
+    <div class="links">
+      <a href="#que-es"><span lang="es">Qué es</span><span lang="en">What</span></a>
+      <a href="#caminos"><span lang="es">Caminos</span><span lang="en">Paths</span></a>
+      <a href="#como"><span lang="es">Cómo usar</span><span lang="en">How to</span></a>
+      <a href="#demos">Demos</a>
+      <a href="#crear"><span lang="es">Qué crear</span><span lang="en">Create</span></a>
+      <a href="#repo">Repo</a>
+    </div>
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+      <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+<!-- ============================== HERO -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="tag"><span lang="es">Skill para cualquier IA · ES / EN</span><span lang="en">A skill for any AI · ES / EN</span></span>
+      <h1><span lang="es">Tu mundo, en <em>pixel art</em>.</span><span lang="en">Your world, in <em>pixel art</em>.</span></h1>
+      <p class="lede">
+        <span lang="es">Crea tu personaje, tu mundo y una pequeña película retro de 8/16 bits conversando con una IA. Tú diriges; la IA es tu equipo. Sales con un HTML con reproductor, música y exportación a video.</span>
+        <span lang="en">Create your character, your world and a short 8/16-bit film by talking to an AI. You direct; the AI is your crew. You get one HTML file with a player, music and video export.</span>
+      </p>
+      <div class="chips">
+        <span class="chip">16:9 · 9:16 · 1:1</span>
+        <span class="chip"><span lang="es">10–30 s</span><span lang="en">10–30 s</span></span>
+        <span class="chip"><span lang="es">música + 14 efectos</span><span lang="en">music + 14 SFX</span></span>
+        <span class="chip"><span lang="es">MP4 con sonido</span><span lang="en">MP4 with sound</span></span>
+        <span class="chip"><span lang="es">sin programar</span><span lang="en">no code</span></span>
+      </div>
+      <div class="row">
+        <a class="btn primary" href="SKILL.md" download><span lang="es">▼ Descargar SKILL.md</span><span lang="en">▼ Download SKILL.md</span></a>
+        <a class="btn" href="#demos"><span lang="es">▶ Ver demos</span><span lang="en">▶ See demos</span></a>
+      </div>
+    </div>
+    <div>
+      <div class="stage"><canvas id="hero" class="px" width="320" height="180" role="img" aria-label="Animación pixel: un personaje camina por una ciudad al atardecer, salta, atrapa una estrella y celebra"></canvas></div>
+      <div class="player">
+        <button type="button" id="heroPlay" aria-label="Pausa / Pause">❚❚</button>
+        <div class="bar" id="heroBar" aria-hidden="true"><i></i></div>
+        <span class="time" id="heroTime">0.0 / 8.0</span>
+      </div>
+      <p class="muted" style="font-size:12px;margin-top:14px">
+        <span lang="es">Esta escena también está hecha con código: cada cuadro sale solo del tiempo <code>t</code>.</span>
+        <span lang="en">This scene is code too: every frame comes only from time <code>t</code>.</span>
+      </p>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== QUÉ ES -->
+<section id="que-es">
+  <div class="wrap">
+    <h2><span lang="es">Qué es</span><span lang="en">What it is</span></h2>
+    <p class="lede">
+      <span lang="es">Un archivo, <code>SKILL.md</code>, que le enseña a cualquier IA (Claude, ChatGPT, Gemini, agentes de código) a hacer animaciones cortas en pixel art. Lleva dentro un núcleo de código ya probado: la IA solo escribe tus escenas.</span>
+      <span lang="en">One file, <code>SKILL.md</code>, that teaches any AI (Claude, ChatGPT, Gemini, coding agents) to make short pixel-art animations. It carries a tested code core: the AI only writes your scenes.</span>
+    </p>
+    <div class="grid">
+      <div class="card"><canvas class="px icon" data-icon="chat" width="8" height="8" aria-hidden="true"></canvas>
+        <h3><span lang="es">Conversas, no programas</span><span lang="en">Talk, don't code</span></h3>
+        <p><span lang="es">Una entrevista corta: formato, idea, personaje, escenas y sensación. Siempre puedes decir “tú decides”.</span><span lang="en">A short interview: format, idea, character, scenes and feel. You can always say “you decide”.</span></p></div>
+      <div class="card"><canvas class="px icon" data-icon="film" width="8" height="8" aria-hidden="true"></canvas>
+        <h3><span lang="es">Un solo HTML</span><span lang="en">One HTML file</span></h3>
+        <p><span lang="es">Se abre en cualquier navegador, con reproducir, pausa, reiniciar y línea de tiempo. Sin imágenes ni audios externos.</span><span lang="en">Opens in any browser, with play, pause, reset and a timeline. No external images or audio.</span></p></div>
+      <div class="card"><canvas class="px icon" data-icon="note" width="8" height="8" aria-hidden="true"></canvas>
+        <h3><span lang="es">Música que actúa</span><span lang="en">Music that acts</span></h3>
+        <p><span lang="es">Cambia con el ánimo de cada escena: tranquila, construyendo, tensión, triunfo. Más pasos, saltos, monedas, alarmas, cohetes…</span><span lang="en">It follows each scene's mood: calm, build, tension, triumph. Plus steps, jumps, coins, alarms, rockets…</span></p></div>
+      <div class="card"><canvas class="px icon" data-icon="rec" width="8" height="8" aria-hidden="true"></canvas>
+        <h3><span lang="es">Exporta el video</span><span lang="en">Export the video</span></h3>
+        <p><span lang="es">Un botón graba la película con sonido y la descarga: MP4 en Chrome, Edge y Safari; WebM en Firefox.</span><span lang="en">One button records the film with sound and downloads it: MP4 in Chrome, Edge and Safari; WebM in Firefox.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CAMINOS -->
+<section id="caminos">
+  <div class="wrap">
+    <h2><span lang="es">Dos caminos</span><span lang="en">Two paths</span></h2>
+    <p class="lede"><span lang="es">El mismo repositorio trae dos skills. Elige según lo que quieras tener al final.</span><span lang="en">The same repo ships two skills. Pick by what you want at the end.</span></p>
+    <div class="paths">
+      <article class="path build">
+        <div class="file">SKILL.md</div>
+        <h3><span lang="es">Construir la película</span><span lang="en">Build the film</span></h3>
+        <dl>
+          <dt><span lang="es">Te da</span><span lang="en">You get</span></dt><dd><span lang="es">La película terminada, en un HTML.</span><span lang="en">The finished film, as one HTML file.</span></dd>
+          <dt><span lang="es">Calidad</span><span lang="en">Quality</span></dt><dd><span lang="es">Más consistente: trae un núcleo ya probado.</span><span lang="en">More consistent: ships a tested core.</span></dd>
+          <dt><span lang="es">Ideal</span><span lang="en">Best for</span></dt><dd><span lang="es">Tener el resultado ya.</span><span lang="en">Getting the result now.</span></dd>
+          <dt><span lang="es">Si falla</span><span lang="en">If it fails</span></dt><dd><span lang="es">La IA se revisa con su lista de comprobación.</span><span lang="en">The AI checks itself with a list.</span></dd>
+        </dl>
+        <div class="row"><a class="btn primary" href="SKILL.md" download>▼ SKILL.md</a><a class="btn" href="SKILL.md" target="_blank" rel="noopener"><span lang="es">Leer</span><span lang="en">Read</span></a></div>
+      </article>
+      <article class="path">
+        <div class="file">prompt/SKILL.md</div>
+        <h3><span lang="es">Solo el prompt</span><span lang="en">Prompt only</span></h3>
+        <dl>
+          <dt><span lang="es">Te da</span><span lang="en">You get</span></dt><dd><span lang="es">Un prompt completo, como el del Tiny Developer, para pegar donde quieras.</span><span lang="en">A complete prompt, like the Tiny Developer one, to paste anywhere.</span></dd>
+          <dt><span lang="es">Calidad</span><span lang="en">Quality</span></dt><dd><span lang="es">Depende de la IA que lo reciba. Lleva reglas técnicas fijas para reducir errores.</span><span lang="en">Depends on the receiving AI. Carries fixed technical rules to reduce errors.</span></dd>
+          <dt><span lang="es">Ideal</span><span lang="en">Best for</span></dt><dd><span lang="es">Usar tu IA favorita, aprender a escribir guiones, compartir la idea.</span><span lang="en">Your favourite AI, learning to write briefs, sharing the idea.</span></dd>
+          <dt><span lang="es">Si falla</span><span lang="en">If it fails</span></dt><dd><span lang="es">Te entrega frases de arreglo para pegar.</span><span lang="en">It gives you fix phrases to paste.</span></dd>
+        </dl>
+        <div class="row"><a class="btn" href="prompt/SKILL.md" download>▼ prompt/SKILL.md</a><a class="btn" href="#prompt-ejemplo"><span lang="es">Ver un ejemplo</span><span lang="en">See an example</span></a></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CÓMO USARLO -->
+<section id="como">
+  <div class="wrap">
+    <h2><span lang="es">Cómo usarlo</span><span lang="en">How to use it</span></h2>
+    <ol class="steps">
+      <li><div>
+        <h3><span lang="es">Descarga la skill</span><span lang="en">Download the skill</span></h3>
+        <p><span lang="es"><code>SKILL.md</code> para construir, o <code>prompt/SKILL.md</code> si solo quieres el prompt.</span><span lang="en"><code>SKILL.md</code> to build, or <code>prompt/SKILL.md</code> if you only want the prompt.</span></p>
+      </div></li>
+      <li><div>
+        <h3><span lang="es">Dásela a tu IA</span><span lang="en">Give it to your AI</span></h3>
+        <div class="tabs" role="tablist" aria-label="IA">
+          <button type="button" role="tab" aria-selected="true" data-tab="t-claude">Claude</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="t-gpt">ChatGPT · Gemini</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="t-agent"><span lang="es">Agentes de código</span><span lang="en">Coding agents</span></button>
+        </div>
+        <div class="tabpanel" id="t-claude" role="tabpanel">
+          <span lang="es">En claude.ai, súbelo como skill en la configuración, o simplemente adjúntalo en una conversación.</span>
+          <span lang="en">On claude.ai, upload it as a skill in settings, or just attach it to a conversation.</span></div>
+        <div class="tabpanel" id="t-gpt" role="tabpanel" hidden>
+          <span lang="es">Abre una conversación nueva y adjunta el archivo, o pega su contenido completo.</span>
+          <span lang="en">Open a new conversation and attach the file, or paste its full content.</span></div>
+        <div class="tabpanel" id="t-agent" role="tabpanel" hidden>
+          <span lang="es">Claude Code, Cursor y similares: ponlo en la carpeta de skills o de reglas del agente.</span>
+          <span lang="en">Claude Code, Cursor and similar: put it in the agent's skills or rules folder.</span></div>
+      </div></li>
+      <li><div>
+        <h3><span lang="es">Pídelo</span><span lang="en">Ask for it</span></h3>
+        <div class="say"><q lang="es">Quiero crear una animación pixel</q><q lang="en">I want to make a pixel animation</q><button type="button" data-copy-q><span lang="es">Copiar</span><span lang="en">Copy</span></button></div>
+        <div class="say"><q lang="es">Quiero el prompt de mi animación pixel</q><q lang="en">I want the prompt for my pixel animation</q><button type="button" data-copy-q><span lang="es">Copiar</span><span lang="en">Copy</span></button></div>
+      </div></li>
+      <li><div>
+        <h3><span lang="es">Contesta la entrevista</span><span lang="en">Answer the interview</span></h3>
+        <p><span lang="es">Formato, idea, personaje, escenas y sensación, de a una pregunta. Si ya tienes un guion completo, pégalo y la IA se salta la entrevista.</span><span lang="en">Format, idea, character, scenes and feel, one question at a time. If you already have a full script, paste it and the AI skips the interview.</span></p>
+      </div></li>
+      <li><div>
+        <h3><span lang="es">Aprueba la hoja de historia</span><span lang="en">Approve the story sheet</span></h3>
+        <p><span lang="es">Escenas con tiempos, acciones y textos. Cambia lo que quieras antes de construir.</span><span lang="en">Timed scenes, actions and text. Change anything before it builds.</span></p>
+      </div></li>
+      <li><div>
+        <h3><span lang="es">Abre tu película</span><span lang="en">Open your film</span></h3>
+        <p><span lang="es">Si la IA no la muestra, guarda el código como <code>mi-pelicula.html</code> y ábrelo en Chrome, Edge o Safari. Pide cambios como notas de director: “más lento”, “otro final”, “versión vertical”.</span><span lang="en">If the AI can't show it, save the code as <code>my-film.html</code> and open it in Chrome, Edge or Safari. Ask for changes like director's notes: “slower”, “another ending”, “vertical version”.</span></p>
+      </div></li>
+    </ol>
+
+    <h3 style="margin-top:36px;color:var(--text)"><span lang="es">Lo que pasa por dentro de la conversación</span><span lang="en">What happens inside the conversation</span></h3>
+    <div class="pipe">
+      <div><b><span lang="es">1 · Entrevista</span><span lang="en">1 · Interview</span></b><span lang="es">5 preguntas, sin palabras técnicas</span><span lang="en">5 questions, no jargon</span></div>
+      <div><b><span lang="es">2 · Hoja</span><span lang="en">2 · Sheet</span></b><span lang="es">la historia, para aprobar</span><span lang="en">the story, to approve</span></div>
+      <div><b><span lang="es">3 · Construir</span><span lang="en">3 · Build</span></b><span lang="es">núcleo probado + tus escenas</span><span lang="en">tested core + your scenes</span></div>
+      <div><b><span lang="es">4 · Revisar</span><span lang="en">4 · Check</span></b><span lang="es">lista de autocomprobación</span><span lang="en">self-check list</span></div>
+      <div><b><span lang="es">5 · Entregar</span><span lang="en">5 · Deliver</span></b><span lang="es">HTML + video</span><span lang="en">HTML + video</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== DEMOS -->
+<section id="demos">
+  <div class="wrap">
+    <h2>Demos</h2>
+    <p class="lede"><span lang="es">Todo lo que ves aquí está hecho con la skill y corre en vivo en tu navegador. Ninguna imagen, ningún video: solo código.</span><span lang="en">Everything here was made with the skill and runs live in your browser. No images, no video: just code.</span></p>
+    <div class="theater">
+      <div class="demo-list" role="tablist" aria-label="Demos" id="demoList"></div>
+      <div class="screen">
+        <div class="screen-bar">
+          <span class="dots" aria-hidden="true"><i style="background:#ff4fd8"></i><i style="background:#ffd23f"></i><i style="background:#2de2e6"></i></span>
+          <span class="path-txt" id="demoPath"></span>
+          <a id="demoOpen" href="#" target="_blank" rel="noopener"><span lang="es">Abrir ↗</span><span lang="en">Open ↗</span></a>
+        </div>
+        <div id="demoView"></div>
+        <div class="demo-about" id="demoAbout"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== QUÉ PUEDES CREAR -->
+<section id="crear">
+  <div class="wrap">
+    <h2><span lang="es">Qué puedes crear</span><span lang="en">What you can make</span></h2>
+
+    <h3 style="margin-top:22px"><span lang="es">Formatos</span><span lang="en">Formats</span></h3>
+    <div class="formats">
+      <div class="fmt"><span style="width:160px;height:90px"></span><b>16:9</b><span lang="es">YouTube, presentaciones</span><span lang="en">YouTube, slides</span></div>
+      <div class="fmt"><span style="width:63px;height:112px"></span><b>9:16</b><span lang="es">historias, reels</span><span lang="en">stories, reels</span></div>
+      <div class="fmt"><span style="width:96px;height:96px"></span><b>1:1</b>feed</div>
+    </div>
+
+    <div class="grid" style="margin-top:30px">
+      <div class="card"><canvas class="px icon" data-icon="hero" width="8" height="8" aria-hidden="true"></canvas>
+        <h3><span lang="es">Personajes</span><span lang="en">Characters</span></h3>
+        <p><span lang="es">Personas con peinado, colores, lentes, bolso, bufanda o audífonos. También animales, robots y objetos con cara.</span><span lang="en">People with hair styles, colours, glasses, bag, scarf or headphones. Also animals, robots and objects with faces.</span></p></div>
+      <div class="card"><canvas class="px icon" data-icon="run" width="8" height="8" aria-hidden="true"></canvas>
+        <h3><span lang="es">Acciones</span><span lang="en">Actions</span></h3>
+        <p><span lang="es">Caminar, correr, saltar, cargar, atrapar, celebrar, señalar, pensar, saludar, sentarse, hablar.</span><span lang="en">Walk, run, jump, carry, catch, celebrate, point, think, wave, sit, talk.</span></p></div>
+      <div class="card"><canvas class="px icon" data-icon="star" width="8" height="8" aria-hidden="true"></canvas>
+        <h3><span lang="es">Escenas</span><span lang="en">Scenes</span></h3>
+        <p><span lang="es">De 10 a 30 segundos, con transiciones, textos, globos de diálogo y chispas.</span><span lang="en">10 to 30 seconds, with transitions, text, speech bubbles and sparks.</span></p></div>
+      <div class="card"><canvas class="px icon" data-icon="note" width="8" height="8" aria-hidden="true"></canvas>
+        <h3><span lang="es">Sonido</span><span lang="en">Sound</span></h3>
+        <p><span lang="es">Música por ánimo de escena y 14 efectos sintetizados. Nada de archivos de audio.</span><span lang="en">Music by scene mood and 14 synthesized effects. No audio files.</span></p></div>
+    </div>
+
+
+    <h3 style="margin-top:34px"><span lang="es">Ideas para empezar</span><span lang="en">Ideas to start with</span></h3>
+    <div class="ideas">
+      <div class="idea"><b><span lang="es">Tu trabajo, en 15 s</span><span lang="en">Your job, in 15 s</span></b><span lang="es">Una desarrolladora diminuta vive dentro del escritorio y caza bugs que son insectos.</span><span lang="en">A tiny developer lives inside the desktop and catches bugs that are actual insects.</span></div>
+      <div class="idea"><b><span lang="es">Tu negocio</span><span lang="en">Your business</span></b><span lang="es">Una panadera manda una caja de pan en globo hasta el pueblo.</span><span lang="en">A baker sends a box of bread to town in a balloon.</span></div>
+      <div class="idea"><b><span lang="es">Tu mascota</span><span lang="en">Your pet</span></b><span lang="es">Un gato que programa, en vertical, listo para una historia.</span><span lang="en">A cat who codes, vertical, ready for a story.</span></div>
+      <div class="idea"><b><span lang="es">Un anuncio</span><span lang="en">An announcement</span></b><span lang="es">Un cohete despega con el nombre de tu lanzamiento.</span><span lang="en">A rocket lifts off carrying your launch's name.</span></div>
+      <div class="idea"><b><span lang="es">Una invitación</span><span lang="en">An invitation</span></b><span lang="es">Tu personaje corre por la ciudad hasta la fiesta y muestra la fecha.</span><span lang="en">Your character runs across town to the party and shows the date.</span></div>
+      <div class="idea"><b><span lang="es">Un tutorial</span><span lang="en">A tutorial</span></b><span lang="es">Antes y después: tres pasos de tu proceso, uno por escena.</span><span lang="en">Before and after: three steps of your process, one per scene.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PROMPT EJEMPLO -->
+<section id="prompt-ejemplo">
+  <div class="wrap">
+    <h2><span lang="es">Así se ve un prompt</span><span lang="en">What a prompt looks like</span></h2>
+    <p class="lede"><span lang="es">El generador entrega un solo bloque para copiar. Al final siempre agrega reglas técnicas y de calidad con lo que suele fallar, para que cualquier IA lo sepa de antemano.</span><span lang="en">The generator delivers one block to copy. At the end it always appends technical and quality rules covering what usually fails, so any AI knows in advance.</span></p>
+    <div class="two">
+      <div>
+        <div class="code-box"><pre id="promptSample">PROJECT: LA PANADERA QUE ENVÍA PAN
+
+STYLE:
+2D flat pixel art animation, 8-bit/16-bit retro
+aesthetic, warm sunset palette: cream, orange,
+magenta, gold.
+
+FORMAT:
+9:16 vertical. Approximate duration: 12 seconds.
+One self-contained HTML file. Virtual resolution
+180x320, imageSmoothingEnabled = false.
+
+CHARACTER:
+Rosa: person. Dark hair in a bun. Cream shirt,
+green apron, red scarf.
+Personality: curiosa, rápida, orgullosa.
+
+SCENE 1 — LA IDEA
+0:00 - 0:04
+Rosa kneads the dough. She stops and looks up.
+A yellow star pops above her head.
+A speech bubble types: "¿Y SI...?"
+
+SCENE 2 — …
+SCENE 3 — …
+
+TECHNICAL RULES:
+- Every frame is computed only from time t.
+- The character has a dark 1-pixel outline.
+- The pixel font includes exactly: ¿ ? ! ...
+QUALITY RULES:
+- Check frames at 20%, 50% and 85% of each scene.</pre><button type="button" data-copy="#promptSample"><span lang="es">Copiar</span><span lang="en">Copy</span></button></div>
+        <p class="muted" style="font-size:12.5px;margin-top:10px"><span lang="es">Extracto. Completo en</span><span lang="en">Excerpt. Full version in</span> <a href="examples/prompt-panaderia.md">examples/prompt-panaderia.md</a> · <span lang="es">el guion original:</span><span lang="en">original brief:</span> <a href="examples/tiny-developer-brief.md">tiny-developer-brief.md</a></p>
+      </div>
+      <div>
+        <h3><span lang="es">Frases de arreglo</span><span lang="en">Fix phrases</span></h3>
+        <p class="muted" style="font-size:13px"><span lang="es">Si la IA que recibió el prompt se equivoca, pega una de estas:</span><span lang="en">If the receiving AI gets it wrong, paste one of these:</span></p>
+        <div class="fixes" id="fixes"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== POR DENTRO -->
+<section id="dentro">
+  <div class="wrap">
+    <h2><span lang="es">Cómo funciona por dentro</span><span lang="en">How it works inside</span></h2>
+    <div class="formula"><span lang="es">pantalla = dibujarEscena(t)</span><span lang="en">screen = drawScene(t)</span></div>
+    <p class="lede"><span lang="es">Todo se dibuja en una pantalla virtual de 320×180 píxeles que se amplía sin perder nitidez. Cada cuadro depende solo del tiempo, sin azar ni estado: por eso puedes adelantar, retroceder y exportar, y siempre sale igual.</span><span lang="en">Everything is drawn on a 320×180 virtual screen scaled up crisply. Each frame depends only on time, no randomness or state: that's why you can scrub, rewind and export and always get the same result.</span></p>
+    <div class="core-map">
+      <div class="edit"><b>1 · CONFIG</b><span lang="es">título, tamaño, duración. Se edita.</span><span lang="en">title, size, duration. Edit.</span></div>
+      <div class="lock"><b>2 · CORE</b><span lang="es">fuente, personaje, sonido, export. No tocar.</span><span lang="en">font, character, sound, export. Don't touch.</span></div>
+      <div class="edit"><b>3 · <span lang="es">MUNDO</span><span lang="en">WORLD</span></b><span lang="es">tus escenas. Se edita.</span><span lang="en">your scenes. Edit.</span></div>
+      <div class="lock"><b>4 · PLAYER</b><span lang="es">reproductor. No tocar.</span><span lang="en">player. Don't touch.</span></div>
+    </div>
+    <div class="two">
+      <div class="card">
+        <h3><span lang="es">Lo que evita</span><span lang="en">What it prevents</span></h3>
+        <ul class="plain">
+          <li><span lang="es">Personajes que desaparecen detrás del fondo</span><span lang="en">Characters vanishing behind the background</span></li>
+          <li><span lang="es">Letras con tildes o ¿ ¡ que salen rotas</span><span lang="en">Accented letters or ¿ ¡ rendering broken</span></li>
+          <li><span lang="es">Animaciones que se rompen al rebobinar</span><span lang="en">Animations that break when rewound</span></li>
+          <li><span lang="es">Todo demasiado rápido para leerse</span><span lang="en">Everything too fast to read</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span lang="es">Límites</span><span lang="en">Limits</span></h3>
+        <ul class="plain">
+          <li><span lang="es">Solo pixel art plano: no realismo ni 3D.</span><span lang="en">Flat pixel art only: no realism or 3D.</span></li>
+          <li><span lang="es">Películas de hasta unos 30 s.</span><span lang="en">Films up to about 30 s.</span></li>
+          <li><span lang="es">Sin personajes con derechos de autor ni logos.</span><span lang="en">No copyrighted characters or logos.</span></li>
+          <li><span lang="es">La IA no oye el sonido: escúchalo tú una vez.</span><span lang="en">The AI can't hear the sound: listen once yourself.</span></li>
+          <li><span lang="es">Algunas vistas previas de chat bloquean descargas: abre el archivo en una pestaña normal.</span><span lang="en">Some chat previews block downloads: open the file in a normal tab.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== REPO -->
+<section id="repo">
+  <div class="wrap">
+    <h2><span lang="es">El repositorio</span><span lang="en">The repository</span></h2>
+    <div class="two">
+      <pre>pixel-world/
+├── index.html          <span lang="es">esta página</span><span lang="en">this page</span>
+├── SKILL.md            <span lang="es">construye la película</span><span lang="en">builds the film</span>
+├── prompt/SKILL.md     <span lang="es">solo escribe el prompt</span><span lang="en">writes the prompt only</span>
+├── README.md           <span lang="es">guía ES / EN</span><span lang="en">guide ES / EN</span>
+├── LICENSE             MIT
+├── core/
+│   └── pixel-core.html <span lang="es">plantilla + demo 12 s</span><span lang="en">template + 12 s demo</span>
+├── examples/
+│   ├── gato-que-programa.html
+│   ├── prompt-panaderia.md
+│   └── tiny-developer-brief.md
+└── lortbot.html</pre>
+      <div>
+        <h3><span lang="es">Móntalo en GitHub Pages</span><span lang="en">Host it on GitHub Pages</span></h3>
+        <ol class="plain" style="padding-left:20px">
+          <li><span lang="es">Crea un repositorio, por ejemplo <code>pixel-world</code>, y sube todo.</span><span lang="en">Create a repo, e.g. <code>pixel-world</code>, and push everything.</span></li>
+          <li><span lang="es">En <b>Settings → Pages</b>, elige la rama <code>main</code> y la carpeta raíz.</span><span lang="en">In <b>Settings → Pages</b>, pick branch <code>main</code> and the root folder.</span></li>
+          <li><span lang="es">En un minuto, esta página vive en <code>tu-usuario.github.io/pixel-world</code> con los demos funcionando.</span><span lang="en">In a minute this page lives at <code>your-user.github.io/pixel-world</code> with the demos working.</span></li>
+          <li><span lang="es">En <code>LICENSE</code>, pon tu nombre.</span><span lang="en">Put your name in <code>LICENSE</code>.</span></li>
+        </ol>
+        <p class="muted" style="font-size:12.5px;margin-top:12px"><span lang="es">Para enlazar tu repositorio desde esta página, cambia <code>REPO_URL</code> al final del archivo.</span><span lang="en">To link your repo from this page, change <code>REPO_URL</code> at the end of the file.</span></p>
+      </div>
+    </div>
+
+    <div class="cta">
+      <h2><span lang="es">Dirige tu primera película</span><span lang="en">Direct your first film</span></h2>
+      <p class="lede" style="margin:0 auto 18px"><span lang="es">Descarga la skill, dásela a tu IA y di: “Quiero crear una animación pixel”.</span><span lang="en">Download the skill, give it to your AI and say: “I want to make a pixel animation”.</span></p>
+      <div class="row" style="justify-content:center">
+        <a class="btn primary" href="SKILL.md" download><span lang="es">▼ Construir · SKILL.md</span><span lang="en">▼ Build · SKILL.md</span></a>
+        <a class="btn" href="prompt/SKILL.md" download><span lang="es">▼ Solo prompt</span><span lang="en">▼ Prompt only</span></a>
+        <a class="btn pink" id="repoLink" href="#repo" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">Pixel World · <span lang="es">Licencia MIT. Todo en esta página se calcula en vivo; ninguna imagen, ningún video.</span><span lang="en">MIT License. Everything on this page is computed live; no images, no video.</span></div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// Pon aquí la URL de tu repositorio / Put your repository URL here
+const REPO_URL = '';
+
+// ---------- idioma / language
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+let LANG = 'es';
+function setLang(l) {
+  LANG = l; document.documentElement.dataset.lang = l; document.documentElement.lang = l;
+  $$('[data-set-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.setLang === l)));
+  try { localStorage.setItem('pw-lang', l); } catch (e) {}
+  renderDemoList(); showDemo(current, false); renderFixes();
+}
+$$('[data-set-lang]').forEach(b => b.onclick = () => setLang(b.dataset.setLang));
+
+// ---------- copiar / copy
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 1400); }
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (_) {} ta.remove(); }
+  toast(LANG === 'es' ? '¡Copiado!' : 'Copied!');
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-copy],[data-copy-q],[data-copy-text]'); if (!b) return;
+  if (b.dataset.copyText) return copy(b.dataset.copyText);
+  if (b.hasAttribute('data-copy-q')) return copy(b.parentElement.querySelector(`q[lang="${LANG}"]`).textContent);
+  copy($(b.dataset.copy).textContent);
+});
+
+// ---------- pestañas / tabs
+$$('[data-tab]').forEach(b => b.onclick = () => {
+  $$('[data-tab]').forEach(o => { o.setAttribute('aria-selected', String(o === b)); $('#' + o.dataset.tab).hidden = o !== b; });
+});
+
+// ---------- frases de arreglo / fix phrases
+const FIXES = [
+  { es: ['El personaje desaparece', 'El personaje desaparece o no se ve: mantenlo delante del fondo, con contorno oscuro de 1 pixel y fondo que contraste, en todas las escenas.'],
+    en: ['Character disappears', 'The character disappears or is hard to see: keep it in front of the background, with a dark 1-pixel outline and a contrasting background, in every scene.'] },
+  { es: ['Letras rotas', 'Algunas letras salen en blanco o como simbolos: la fuente pixel debe incluir todos los caracteres usados, con tildes y ¿ ¡.'],
+    en: ['Broken letters', 'Some letters show as blanks or symbols: the pixel font must include every character used, including accents and ¿ ¡.'] },
+  { es: ['Se rompe al retroceder', 'Al retroceder se rompe: calcula cada cuadro solo desde el tiempo t, sin estado entre cuadros y sin Math.random().'],
+    en: ['Breaks when rewinding', 'Rewinding or scrubbing breaks the animation: compute every frame only from time t, with no state kept between frames and no Math.random().'] },
+  { es: ['Va demasiado rápido', 'Va demasiado rapido: mantén las poses clave al menos 0,4 s y cada escena 3-5 s.'],
+    en: ['Too fast to read', "It's too fast to read: hold key poses at least 0.4 s and keep each scene 3-5 s."] },
+  { es: ['No hay sonido', 'No hay sonido: agrega un boton de sonido y sintetiza musica y efectos con Web Audio.'],
+    en: ['No sound', "There's no sound: add a Sound on/off button (browsers need a click) and synthesize music and effects with Web Audio."] },
+];
+function renderFixes() {
+  $('#fixes').innerHTML = '';
+  FIXES.forEach(f => {
+    const [title, text] = f[LANG], d = document.createElement('div'); d.className = 'fix';
+    d.innerHTML = `<div><b></b><span></span></div><button type="button">${LANG === 'es' ? 'Copiar' : 'Copy'}</button>`;
+    d.querySelector('b').textContent = title; d.querySelector('span').textContent = text; d.querySelector('button').dataset.copyText = text;
+    $('#fixes').appendChild(d);
+  });
+}
+
+// ---------- demos
+const DEMOS = [
+  { src: 'lortbot.html', h: 760, name: ['Lortbot y la hamburguesa', 'Lortbot and the burger'], meta: ['16:9 · 15 s', '16:9 · 15 s'],
+    about: ['Una película completa hecha con la skill: personaje propio, escenas, música y exportación a video.', 'A complete film made with the skill: original character, scenes, music and video export.'] },
+  { src: 'examples/gato-que-programa.html', h: 900, w: 440, name: ['El gato que programa', 'The cat who codes'], meta: ['9:16 · 10 s', '9:16 · 10 s'],
+    about: ['Hecho siguiendo solo las reglas del SKILL.md, como lo haría otra IA. Vertical y con un protagonista no humano.', 'Built by following only the SKILL.md rules, as another AI would. Vertical, with a non-human hero.'] },
+  { src: 'core/pixel-core.html', h: 760, name: ['El núcleo', 'The core'], meta: ['16:9 · 12 s · plantilla', '16:9 · 12 s · template'],
+    about: ['La plantilla que la IA copia tal cual: fuente, personaje, sonido, exportación y reproductor, con un demo de 12 s.', 'The template the AI copies as-is: font, character, sound, export and player, with a 12 s demo.'] },
+];
+const L = () => (LANG === 'es' ? 0 : 1);
+let current = 0, loaded = false;
+function renderDemoList() {
+  const list = $('#demoList'); list.innerHTML = '';
+  DEMOS.forEach((d, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(i === current));
+    b.innerHTML = '<span></span><small></small>'; b.firstChild.textContent = d.name[L()]; b.lastChild.textContent = d.meta[L()];
+    b.onclick = () => showDemo(i, true); list.appendChild(b);
+  });
+}
+function fitFrame(f, d) {
+  try { const h = f.contentDocument.documentElement.scrollHeight; if (h > 200) { f.style.height = h + 'px'; return; } } catch (e) {}
+  f.style.height = d.h + 'px';
+}
+function showDemo(i, load) {
+  current = i; const d = DEMOS[i];
+  $$('#demoList button').forEach((b, k) => b.setAttribute('aria-selected', String(k === i)));
+  $('#demoPath').textContent = d.src; $('#demoOpen').href = d.src; $('#demoAbout').textContent = d.about[L()];
+  if (load) loaded = true;
+  const view = $('#demoView');
+  if (!loaded) {
+    view.innerHTML = `<div class="screen-cover"><canvas class="px" data-icon="film" width="8" height="8" style="width:64px;height:64px" aria-hidden="true"></canvas><p></p><button type="button" class="btn primary"></button></div>`;
+    view.querySelector('p').textContent = LANG === 'es' ? 'Los demos se cargan aquí, con su propio reproductor. Activa el sonido dentro de cada uno.' : 'Demos load here, each with its own player. Turn on sound inside each one.';
+    view.querySelector('button').textContent = LANG === 'es' ? '▶ Cargar demo' : '▶ Load demo';
+    view.querySelector('button').onclick = () => showDemo(current, true);
+    drawIcons(view); return;
+  }
+  const existing = view.querySelector('iframe');
+  if (existing && existing.dataset.src === d.src) return;
+  const f = document.createElement('iframe'); f.dataset.src = d.src; f.src = d.src; f.title = d.name[L()]; f.style.height = d.h + 'px'; f.style.maxWidth = d.w ? d.w + 'px' : ''; f.style.margin = '0 auto';
+  f.setAttribute('allow', 'autoplay; fullscreen');
+  f.onload = () => { fitFrame(f, d); setTimeout(() => fitFrame(f, d), 600); };
+  view.innerHTML = ''; view.appendChild(f);
+}
+
+// ---------- iconos pixel / pixel icons (8x8)
+const ICONS = {
+  hero: ['..1111..', '..1221..', '..1331..', '.111111.', '1.1441.1', '..1441..', '..1..1..', '.11..11.'],
+  chat: ['.111111.', '12222221', '12121221', '12222221', '.111111.', '...11...', '..11....', '.1......'],
+  film: ['11111111', '12111121', '13333331', '13333331', '13333331', '13333331', '12111121', '11111111'],
+  note: ['....1111', '....1221', '....1..1', '....1..1', '.111...1', '12221111', '12221221', '.111.111'],
+  rec:  ['..1111..', '.111111.', '11222211', '11222211', '11222211', '11222211', '.111111.', '..1111..'],
+  run:  ['....11..', '....11..', '..1111..', '.1.11.1.', '...111..', '..1..1..', '.1....1.', '1......1'],
+  star: ['...11...', '...11...', '11111111', '.111111.', '..1111..', '.111111.', '.11..11.', '11....11'],
+};
+const ICOL = { hero: ['#06040f', '#ffd23f', '#f3c9a0', '#2de2e6'], chat: ['#2de2e6', '#120f24'], film: ['#ffd23f', '#120f24', '#ff4fd8'], note: ['#ff4fd8', '#2de2e6'], rec: ['#ff4fd8', '#ffd23f'], run: ['#4fd16b'], star: ['#ffd23f'] };
+function drawIcons(root) {
+  (root || document).querySelectorAll('canvas[data-icon]').forEach(c => {
+    const g = c.getContext('2d'), map = ICONS[c.dataset.icon], col = ICOL[c.dataset.icon]; g.clearRect(0, 0, 8, 8);
+    map.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') { g.fillStyle = col[+ch - 1] || col[0]; g.fillRect(x, y, 1, 1); } }));
+  });
+}
+
+// ---------- escena del héroe / hero scene (pantalla = dibujar(t))
+const cv = $('#hero'), g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
+const W = 320, H = 180, DUR = 8;
+const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
+const hash = n => { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); };
+const ease = p => p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+const SKY = ['#1a1040', '#2b1658', '#4a1d6e', '#7a2470', '#b8346a', '#e8565a', '#ff8a4c', '#ffc35a'];
+function hero(x, y, pose, t, dir) {
+  // contorno oscuro + cuerpo / dark outline + body
+  const k = '#06040f', s = '#f3c9a0', hair = '#2a1a3a', top = '#2de2e6', leg = '#3b2a6e', cap = '#ff4fd8';
+  const legA = pose === 'walk' ? (Math.floor(t * 8) % 2 ? 2 : -2) : 0;
+  const arm = pose === 'cheer' ? -8 : pose === 'jump' ? -6 : 0;
+  R(x - 6, y - 25, 12, 26, k);
+  R(x - 5, y - 24, 10, 4, cap); R(x + (dir > 0 ? 3 : -8), y - 21, 5, 2, cap);
+  R(x - 5, y - 20, 10, 7, s); R(x - 5, y - 20, 2, 4, hair); R(x + (dir > 0 ? 2 : -3), y - 18, 1, 2, k);
+  R(x - 5, y - 13, 10, 7, top);
+  R(x - 8, y - 13 + arm, 3, 7, k); R(x - 7, y - 12 + arm, 1, 5, s);
+  R(x + 5, y - 13 + arm, 3, 7, k); R(x + 6, y - 12 + arm, 1, 5, s);
+  R(x - 5, y - 6, 4, 6, leg); R(x + 1, y - 6, 4, 6, leg);
+  if (legA) { R(x - 5 + legA, y - 1, 4, 2, k); R(x + 1 - legA, y - 1, 4, 2, k); } else { R(x - 5, y - 1, 4, 2, k); R(x + 1, y - 1, 4, 2, k); }
+}
+function star(x, y, r, c) { R(x - r, y, r * 2 + 1, 1, c); R(x, y - r, 1, r * 2 + 1, c); if (r > 1) R(x - 1, y - 1, 3, 3, c); }
+function scene(t) {
+  // cielo en bandas / banded sky
+  SKY.forEach((c, i) => R(0, i * 15, W, 15, c));
+  for (let i = 0; i < 26; i++) { const sx = hash(i) * W, sy = hash(i + 50) * 60; if (Math.floor(t * 3 + i) % 5) R(sx, sy, 1, 1, '#f3e4c4'); }
+  // sol / sun
+  for (let r = 22; r > 0; r -= 2) { const w = Math.round(Math.sqrt(22 * 22 - (22 - r) * (22 - r))) * 2; R(230 - w / 2, 108 - 22 + (22 - r), w, 2, r > 8 ? '#ffd23f' : '#fff2a8'); }
+  // ciudad parallax / parallax city
+  for (let i = 0; i < 14; i++) {
+    const bw = 18 + hash(i + 9) * 18, bh = 30 + hash(i + 3) * 45, bx = ((i * 30 - t * 6) % (14 * 30) + 14 * 30) % (14 * 30) - 30;
+    R(bx, 132 - bh, bw, bh, '#2b1658');
+    for (let wy = 132 - bh + 5; wy < 126; wy += 7) for (let wx = bx + 3; wx < bx + bw - 3; wx += 6) if (hash(wx * 3 + wy + i) > 0.55) R(wx, wy, 2, 3, '#ffd23f');
+  }
+  // suelo / ground
+  R(0, 132, W, 48, '#3a3266'); R(0, 132, W, 3, '#4fd16b');
+  for (let x = 0; x < W; x += 16) { const o = ((x - t * 40) % 32 + 32) % 32; R(x, 140, 8, 4, o < 16 ? '#241a4a' : '#2b2357'); }
+  for (let x = -16; x < W + 16; x += 16) { const gx = ((x - t * 40) % W + W) % W; R(gx, 160, 10, 2, '#241a4a'); }
+  // coreografía / choreography
+  const p = t / DUR;
+  let x, y = 132, pose = 'walk';
+  if (p < 0.45) x = 30 + ease(p / 0.45) * 110;
+  else if (p < 0.6) { x = 140 + (p - 0.45) / 0.15 * 20; const j = (p - 0.45) / 0.15; y = 132 - Math.sin(j * Math.PI) * 38; pose = 'jump'; }
+  else if (p < 0.85) { x = 160; pose = 'cheer'; y = 132 - Math.abs(Math.sin((p - 0.6) * 40)) * 4; }
+  else { x = 160 + (p - 0.85) / 0.15 * 180; }
+  // estrella / star pickup
+  const sp = 0.52;
+  if (p < sp) { const bob = Math.round(Math.sin(t * 4) * 2); star(152, 88 + bob, 3, '#ffd23f'); R(151, 87 + bob, 3, 3, '#fff2a8'); }
+  else if (p < 0.85) {
+    const q = (p - sp) / (0.85 - sp);
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, d = 6 + q * 26; if (q < 0.8) star(x + Math.cos(a) * d, y - 30 + Math.sin(a) * d, 1, i % 2 ? '#ff4fd8' : '#ffd23f'); }
+    star(x, y - 38 - Math.round(q * 4), 2, '#ffd23f');
+    // contador / counter
+    R(8, 8, 40, 12, '#06040f'); R(9, 9, 38, 10, '#241a4a'); star(16, 14, 2, '#ffd23f');
+    R(25, 13, 3, 3, '#f3e4c4'); R(26, 12, 1, 5, '#f3e4c4'); R(33, 11, 2, 7, '#f3e4c4'); R(32, 12, 1, 1, '#f3e4c4'); // x 1
+  }
+  // sombra / shadow
+  R(x - 6 + (132 - y) / 10, 133, 12 - (132 - y) / 5, 2, '#241a4a');
+  hero(x, y, pose, t, 1);
+  // transición de bucle / loop transition
+  const f = Math.max(0, 1 - t / 0.4, (t - (DUR - 0.4)) / 0.4);
+  if (f > 0) { for (let i = 0; i < 20; i++) R(i * 16, 0, Math.round(16 * f), H, '#120f24'); }
+}
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let playing = !reduce, t0 = performance.now(), tPaused = 3.6, visible = true;
+function frame(now) {
+  const t = playing ? ((now - t0) / 1000) % DUR : tPaused;
+  scene(t);
+  $('#heroBar i').style.width = (t / DUR * 100) + '%';
+  $('#heroTime').textContent = t.toFixed(1) + ' / ' + DUR.toFixed(1);
+  if (playing && visible) requestAnimationFrame(frame);
+}
+$('#heroPlay').onclick = () => {
+  if (playing) { tPaused = ((performance.now() - t0) / 1000) % DUR; playing = false; $('#heroPlay').textContent = '▶'; }
+  else { t0 = performance.now() - tPaused * 1000; playing = true; $('#heroPlay').textContent = '❚❚'; requestAnimationFrame(frame); }
+};
+$('#heroBar').onclick = e => {
+  const r = e.currentTarget.getBoundingClientRect(), tt = Math.max(0, Math.min(DUR - 0.01, (e.clientX - r.left) / r.width * DUR));
+  tPaused = tt; t0 = performance.now() - tt * 1000; if (!playing) frame(performance.now());
+};
+new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible && playing) requestAnimationFrame(frame); }).observe(cv);
+if (reduce) $('#heroPlay').textContent = '▶';
+
+// ---------- inicio / start
+if (REPO_URL) $('#repoLink').href = REPO_URL; else $('#repoLink').removeAttribute('target');
+let saved = null; try { saved = localStorage.getItem('pw-lang'); } catch (e) {}
+setLang(saved || ((navigator.language || 'es').startsWith('es') ? 'es' : 'en'));
+drawIcons();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

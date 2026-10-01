@@ -1,0 +1,414 @@
+// Iconos 3D · Set 2 (código, trompo, ángel, cometa, comunidad, montañas, arco, balcón, libro, iglesia).
+// Geometría copiada de iconos/Iconos 3D - Set 2.html. Se montan sin tarjeta ni giro: solo flotan suave.
+// Uso: <canvas data-icon3d="angel"></canvas>  (opcional: data-pad="0.9", data-shadow="0")
+import * as THREE from 'three';
+
+const canvases = [...document.querySelectorAll('canvas[data-icon3d]')];
+if (canvases.length) {
+const V2 = THREE.Vector2, V3 = THREE.Vector3, D = Math.PI / 180, TAU = Math.PI * 2;
+
+function rbox(w, h, d, r = 0.1, s = 6) {
+  r = Math.min(r, w / 2 - 1e-3, h / 2 - 1e-3, d / 2 - 1e-3);
+  const N = 2 * s + 1, g = new THREE.BoxGeometry(1, 1, 1, N, N, N);
+  const pos = g.attributes.position, nor = g.attributes.normal, H = [w / 2, h / 2, d / 2];
+  const map = (c, hh) => { const i = Math.round((c + 0.5) * N); return i <= s ? -hh + r * (i / s) : hh - r * ((N - i) / s); };
+  const cl = (v, a) => Math.max(-a + r, Math.min(a - r, v)), dir = new V3();
+  for (let i = 0; i < pos.count; i++) {
+    const x = map(pos.getX(i), H[0]), y = map(pos.getY(i), H[1]), z = map(pos.getZ(i), H[2]);
+    const ix = cl(x, H[0]), iy = cl(y, H[1]), iz = cl(z, H[2]);
+    dir.set(x - ix, y - iy, z - iz);
+    if (dir.lengthSq() < 1e-12) { pos.setXYZ(i, x, y, z); continue; }
+    dir.normalize(); pos.setXYZ(i, ix + dir.x * r, iy + dir.y * r, iz + dir.z * r); nor.setXYZ(i, dir.x, dir.y, dir.z);
+  }
+  return g;
+}
+function smoothNormals(g, th = 0.5) {
+  g.computeVertexNormals();
+  const p = g.attributes.position, n = g.attributes.normal, groups = new Map();
+  for (let i = 0; i < p.count; i++) {
+    const k = Math.round(p.getX(i) * 1e4) + ',' + Math.round(p.getY(i) * 1e4) + ',' + Math.round(p.getZ(i) * 1e4);
+    (groups.get(k) || groups.set(k, []).get(k)).push(i);
+  }
+  const out = new Float32Array(n.count * 3), a = new V3(), b = new V3(), s = new V3();
+  for (const idx of groups.values()) for (const i of idx) {
+    a.fromBufferAttribute(n, i); s.set(0, 0, 0);
+    for (const j of idx) { b.fromBufferAttribute(n, j); if (a.dot(b) > th) s.add(b); }
+    s.normalize(); out[i * 3] = s.x; out[i * 3 + 1] = s.y; out[i * 3 + 2] = s.z;
+  }
+  n.array.set(out); n.needsUpdate = true;
+}
+const ramp = (stops, cyc = false) => { const cs = stops.map(([u, h]) => [u, new THREE.Color(h)]); return (u, out = new THREE.Color()) => {
+  u = cyc ? ((u % 1) + 1) % 1 : Math.max(0, Math.min(1, u));
+  for (let i = 0; i < cs.length - 1; i++) if (u <= cs[i + 1][0]) return out.copy(cs[i][1]).lerp(cs[i + 1][1], (u - cs[i][0]) / (cs[i + 1][0] - cs[i][0]));
+  return out.copy(cs[cs.length - 1][1]);
+}; };
+const RB = ramp([[0, '#ff3d5a'], [0.16, '#ff8a1f'], [0.32, '#ffc21a'], [0.5, '#27c26e'], [0.68, '#1f78ff'], [0.84, '#8a5cf6'], [1, '#ff3d5a']], true);
+const WHITE = new THREE.Color('#fbfbfe');
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+function paintFn(geo, fn) {
+  if (!geo.attributes.normal) geo.computeVertexNormals();
+  const p = geo.attributes.position, n = geo.attributes.normal, arr = new Float32Array(p.count * 3), v = new V3(), nv = new V3(), c = new THREE.Color();
+  for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); nv.fromBufferAttribute(n, i); fn(v, nv, c); arr[i * 3] = c.r; arr[i * 3 + 1] = c.g; arr[i * 3 + 2] = c.b; }
+  geo.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+  return geo;
+}
+function paint(geo, front, side, lo = 0.35, hi = 0.85) {
+  const b = new THREE.Color();
+  return paintFn(geo, (v, n, out) => { front(v, out, n); side(v, b, n); out.copy(b.lerp(out, sstep(lo, hi, n.z))); });
+}
+const solid = (hex) => (v, o) => o.set(hex);
+const gloss = (name, extra = {}) => new THREE.MeshPhysicalMaterial({ name, color: 0xffffff, vertexColors: true, roughness: 0.22, metalness: 0, clearcoat: 0.75, clearcoatRoughness: 0.12, ...extra });
+const mesh = (name, geo, m, x = 0, y = 0, z = 0, parent) => { const o = new THREE.Mesh(geo, m); o.name = name; o.position.set(x, y, z); parent && parent.add(o); return o; };
+function ext(shape, depth, bev = 0.08, seg = 6) {
+  const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: true, bevelThickness: bev, bevelSize: bev * 0.85, bevelSegments: seg, curveSegments: 40 });
+  g.translate(0, 0, -depth / 2); smoothNormals(g, 0.25); return g;
+}
+const circle = (r) => { const s = new THREE.Shape(); s.absarc(0, 0, r, 0, TAU, false); return s; };
+const angU = (x, y) => ((Math.atan2(y, x) / TAU) + 1) % 1;
+
+function buildCode() {
+  const g = new THREE.Group(); g.name = 'icono_codigo';
+  const L = 1.12, T = 0.46, Dp = 0.5, S = Math.SQRT1_2;
+  const chev = (name, dir, x, front, side) => {
+    const c = new THREE.Group(); c.name = name; c.position.x = x; g.add(c);
+    [1, -1].forEach(sg => {
+      const geo = rbox(L + T * 0.5, T, Dp, 0.2);
+      const m = new THREE.Matrix4().makeRotationZ(sg * dir * Math.PI / 4);
+      m.premultiply(new THREE.Matrix4().makeTranslation(dir * (L / 2 - T / 4) * S, sg * (L / 2 - T / 4) * S, 0));
+      geo.applyMatrix4(m);
+      paint(geo, (v, o) => front(v, o, x), (v, o) => side(v, o, x));
+      mesh(name + (sg > 0 ? '_superior' : '_inferior'), geo, gloss(name + '_mat'), 0, 0, 0, c);
+    });
+  };
+  const lf = ramp([[0, '#ffb21c'], [0.5, '#ff8a1f'], [1, '#ff4d3a']]), ls = ramp([[0, '#27c26e'], [0.45, '#1f78ff'], [1, '#3f6cff']]);
+  const rf = ramp([[0, '#18b36a'], [0.5, '#9fd12a'], [0.75, '#ffb81c'], [1, '#ff6a2c']]), rs = ramp([[0, '#5a5cff'], [1, '#d24dff']]);
+  chev('menor_que', 1, -1.85, (v, o) => lf((v.y + 1) / 2 - v.x * 0.15, o), (v, o) => ls((v.y + 1) / 2, o));
+  chev('mayor_que', -1, 1.85, (v, o) => rf((v.y * 0.8 - v.x * 0.35 + 1) / 2, o), (v, o) => rs((1 - v.y) / 2, o));
+  const sl = rbox(0.36, 2.35, 0.46, 0.17); sl.rotateZ(-0.34);
+  const sb = ramp([[0, '#1f78ff'], [1, '#4f8dff']]);
+  paint(sl, (v, o) => o.copy(WHITE), (v, o) => sb((v.y + 1.2) / 2.4, o));
+  mesh('barra', sl, gloss('barra_mat'), 0, 0, 0.05, g);
+  g.rotation.set(0.08, -0.42, 0); g.scale.setScalar(0.76);
+  return { obj: g, view: new V3(0, 0.05, 1), shift: 3 };
+}
+function buildTop() {
+  const g = new THREE.Group(); g.name = 'icono_trompo';
+  const spin = new THREE.Group(); spin.name = 'trompo'; g.add(spin);
+  const prof = new THREE.SplineCurve([[0.02, 0.06], [0.14, 0.1], [0.45, 0.38], [0.8, 0.74], [0.98, 1.0], [1.0, 1.12], [0.93, 1.24], [0.66, 1.32], [0.3, 1.36], [0.001, 1.365]].map(([x, y]) => new V2(x, y))).getPoints(140);
+  const body = new THREE.LatheGeometry(prof, 128);
+  const topR = ramp([[0, '#ffc21a'], [0.55, '#ff8a1f'], [1, '#ff4d3a']]);
+  const band = (y, a, b) => sstep(a - 0.012, a + 0.012, y) * (1 - sstep(b - 0.012, b + 0.012, y));
+  paintFn(body, (v, n, o) => {
+    if (n.y > 0.72 && v.y > 1.2) return topR((v.x + 1) / 2 + v.z * 0.2, o);
+    RB(angU(v.x, v.z) + v.y * 0.18, o);
+    o.lerp(WHITE, Math.max(band(v.y, 0.5, 0.64), band(v.y, 0.96, 1.08)));
+  });
+  mesh('cuerpo', body, gloss('cuerpo_mat'), 0, 0, 0, spin);
+  const hp = [[0.001, 1.3], [0.29, 1.3], [0.335, 1.34], [0.345, 1.4], [0.345, 1.72], [0.335, 1.78], [0.29, 1.815], [0.001, 1.82]].map(([x, y]) => new V2(x, y));
+  const handle = new THREE.LatheGeometry(new THREE.SplineCurve(hp).getPoints(60), 96);
+  const hTop = ramp([[0, '#1f78ff'], [1, '#8a5cf6']]);
+  paintFn(handle, (v, n, o) => n.y > 0.7 ? hTop((v.x + 0.35) / 0.7, o) : RB(angU(v.x, v.z) + 0.55, o));
+  mesh('mango', handle, gloss('mango_mat'), 0, 0, 0, spin);
+  const tip = new THREE.SphereGeometry(0.1, 32, 20);
+  paintFn(tip, (v, n, o) => o.set('#27c26e'));
+  mesh('punta', tip, gloss('punta_mat'), 0, 0.08, 0, spin);
+  g.rotation.set(0.14, 0, -0.3);
+  return { obj: g, view: new V3(0, 0.22, 1), shadow: 0.025, tick: (t) => { spin.rotation.y = t * 1.4; } };
+}
+function buildAngel() {
+  const g = new THREE.Group(); g.name = 'icono_angel';
+  const side = (v, o) => RB(0.9 - v.y * 0.16 - v.x * 0.28, o), front = (v, o) => o.copy(WHITE);
+  const b = new THREE.Shape();
+  b.moveTo(-0.6, 0); b.lineTo(0.64, 0); b.quadraticCurveTo(0.74, 0, 0.72, 0.1); b.quadraticCurveTo(0.56, 0.9, 0.4, 1.35);
+  b.quadraticCurveTo(0.3, 1.6, 0.02, 1.6); b.quadraticCurveTo(-0.3, 1.6, -0.4, 1.35); b.quadraticCurveTo(-0.55, 0.9, -0.68, 0.1); b.quadraticCurveTo(-0.7, 0, -0.6, 0);
+  const bodyG = ext(b, 0.46, 0.09); bodyG.translate(0, 0.3, 0); paint(bodyG, front, side);
+  mesh('cuerpo', bodyG, gloss('cuerpo_mat'), 0, 0, 0, g);
+  const headG = ext(circle(0.33), 0.42, 0.08); headG.translate(0, 2.18, 0); paint(headG, front, side);
+  mesh('cabeza', headG, gloss('cabeza_mat'), 0, 0, 0, g);
+  const base = rbox(1.85, 0.32, 0.92, 0.13); base.translate(0, 0.16, -0.12);
+  paint(base, (v, o) => RB(0.78 + v.x * 0.12, o), (v, o) => RB(0.72 + v.x * 0.14, o), 0.5, 0.9);
+  mesh('base', base, gloss('base_mat'), 0, 0, 0, g);
+  const wf = ramp([[0, '#ff5a3a'], [0.35, '#ff8a1f'], [0.7, '#6a6cff'], [1, '#1f78ff']]), ws = ramp([[0, '#8a5cf6'], [1, '#1f78ff']]);
+  const ws0 = new THREE.Shape();
+  ws0.moveTo(0, 0); ws0.quadraticCurveTo(0.18, 0.72, 0.86, 0.98); ws0.quadraticCurveTo(1.04, 0.62, 0.8, 0.2); ws0.quadraticCurveTo(0.48, -0.08, 0, 0);
+  const wgR = ext(ws0, 0.12, 0.06);
+  paint(wgR, (v, o) => wf(Math.abs(v.x) / 0.95, o), (v, o) => ws(v.y, o));
+  const wgL = wgR.clone(); wgL.scale(-1, 1, 1); wgL.index && wgL.setIndex(wgL.index);
+  { const p = wgL.attributes.position, n = wgL.attributes.normal, c = wgL.attributes.color;
+    for (let i = 0; i < p.count; i += 3) for (const a of [p, n, c]) { for (let k = 0; k < a.itemSize; k++) { const t = a.array[(i + 1) * a.itemSize + k]; a.array[(i + 1) * a.itemSize + k] = a.array[(i + 2) * a.itemSize + k]; a.array[(i + 2) * a.itemSize + k] = t; } } }
+  [[1, wgR], [-1, wgL]].forEach(([sd, wg]) => {
+    const w = mesh(sd > 0 ? 'ala_der' : 'ala_izq', wg, gloss('ala_mat'), sd * 0.28, 1.2, -0.34, g);
+    w.rotation.y = sd * 0.5; w.userData.sd = sd;
+  });
+  const halo = new THREE.TorusGeometry(0.3, 0.055, 24, 96), hr = ramp([[0, '#ffc21a'], [0.5, '#ff8a1f'], [1, '#ffc21a']]);
+  paintFn(halo, (v, n, o) => hr(angU(v.x, v.y), o));
+  const h = mesh('aureola', halo, gloss('aureola_mat'), 0, 2.68, 0, g); h.rotation.x = Math.PI / 2 - 0.4;
+  g.rotation.set(0.05, -0.3, 0);
+  const wings = g.children.filter(c => c.userData.sd);
+  return { obj: g, view: new V3(0, 0.1, 1), tick: (t) => { wings.forEach(w => { w.rotation.y = w.userData.sd * (0.5 + Math.sin(t * 2) * 0.12); }); h.position.y = 2.68 + Math.sin(t * 1.6) * 0.03; } };
+}
+function buildKite() {
+  const g = new THREE.Group(); g.name = 'icono_cometa';
+  const kite = new THREE.Group(); kite.name = 'cometa'; g.add(kite);
+  const P = [[0, 1.15], [0.95, 0.05], [0, -1.05], [-0.95, 0.05]], s = new THREE.Shape(), k = 0.14;
+  const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  P.forEach((c, i) => { const prev = P[(i + 3) % 4], next = P[(i + 1) % 4], a = lerp(c, prev, k), b = lerp(c, next, k);
+    i === 0 ? s.moveTo(...a) : s.lineTo(...a); s.quadraticCurveTo(c[0], c[1], ...b); });
+  s.closePath();
+  const cols = [[45, '#1f78ff'], [135, '#ffa51c'], [225, '#ff3d7a'], [315, '#22c06a']].map(([a, h]) => [a * D, new THREE.Color(h)]);
+  const conic = (v, o, light) => {
+    const a = Math.atan2(v.y - 0.05, v.x); let W = 0; o.setRGB(0, 0, 0);
+    cols.forEach(([ai, c]) => { const w = Math.pow(Math.max(0, Math.cos(a - ai)), 3) + 1e-4; o.r += c.r * w; o.g += c.g * w; o.b += c.b * w; W += w; });
+    o.multiplyScalar(1 / W); return o.lerp(WHITE, light);
+  };
+  const kg = ext(s, 0.14, 0.07);
+  paint(kg, (v, o) => conic(v, o, Math.max(0, 0.18 - Math.hypot(v.x, v.y - 0.05) * 0.2)), (v, o) => conic(v, o, 0.1));
+  mesh('vela', kg, gloss('vela_mat'), 0, 0, 0, kite);
+  const w = gloss('cruz_mat');
+  [[0.09, 2.08, 0], [1.78, 0.09, 0]].forEach(([bw, bh], i) => { const bg = rbox(bw, bh, 0.07, 0.035); paintFn(bg, (v, n, o) => o.copy(WHITE)); mesh(i ? 'cruz_h' : 'cruz_v', bg, w, 0, 0.05, 0.155, kite); });
+  kite.rotation.z = -0.55;
+  const Bw = new V3(-0.55, -0.89, 0);
+  const rs = new THREE.Shape(), hw = 0.035, hh = 0.12, r = 0.03;
+  rs.moveTo(-hw + r, -hh); rs.lineTo(hw - r, -hh); rs.absarc(hw - r, -hh + r, r, -Math.PI / 2, 0); rs.lineTo(hw, hh - r); rs.absarc(hw - r, hh - r, r, 0, Math.PI / 2);
+  rs.lineTo(-hw + r, hh); rs.absarc(-hw + r, hh - r, r, Math.PI / 2, Math.PI); rs.lineTo(-hw, -hh + r); rs.absarc(-hw + r, -hh + r, r, Math.PI, Math.PI * 1.5);
+  const tails = [
+    ['cola_naranja', [[-0.95, -1.0, 0.05], [-1.35, -0.78, 0.1], [-1.7, -0.95, 0.05], [-1.95, -1.25, 0]], ramp([[0, '#ff4d3a'], [0.4, '#ff8a1f'], [1, '#ffc21a']])],
+    ['cola_azul', [[-0.9, -1.25, 0.1], [-1.3, -1.36, 0.15], [-1.55, -1.62, 0.1], [-1.78, -1.98, 0]], ramp([[0, '#ff4d3a'], [0.3, '#6a6cff'], [1, '#1f78ff']])],
+    ['cola_azul_2', [[-0.62, -1.36, 0.1], [-0.86, -1.7, 0.15], [-0.74, -2.02, 0.1], [-0.95, -2.38, 0]], ramp([[0, '#ff4d3a'], [0.3, '#4f7dff'], [1, '#1f5fe0']])],
+  ];
+  const tailMeshes = tails.map(([name, pts, cr]) => {
+    const curve = new THREE.CatmullRomCurve3([Bw, ...pts.map(p => new V3(...p))]);
+    const tg = new THREE.ExtrudeGeometry(rs, { steps: 120, bevelEnabled: false, extrudePath: curve, curveSegments: 4 });
+    smoothNormals(tg, 0.5);
+    paintFn(tg, (v, n, o) => cr(Bw.distanceTo(v) / 1.6, o));
+    return mesh(name, tg, gloss(name + '_mat'), 0, 0, 0, g);
+  });
+  const knot = new THREE.SphereGeometry(0.08, 24, 16); paintFn(knot, (v, n, o) => o.set('#ff3d5a'));
+  mesh('nudo', knot, gloss('nudo_mat'), Bw.x, Bw.y, Bw.z, g);
+  g.rotation.set(0.05, -0.32, 0);
+  return { obj: g, view: new V3(0, 0.05, 1), tick: (t) => { kite.rotation.z = -0.55 + Math.sin(t * 1.1) * 0.05; tailMeshes.forEach((m, i) => { m.rotation.x = Math.sin(t * 2.2 + i) * 0.05; }); } };
+}
+function buildPeople() {
+  const g = new THREE.Group(); g.name = 'icono_comunidad';
+  const arch = (w, h) => { const s = new THREE.Shape(), r = w / 2; s.moveTo(-r, 0); s.lineTo(r, 0); s.lineTo(r, h - r); s.absarc(0, h - r, r, 0, Math.PI, false); s.lineTo(-r, 0); return s; };
+  const headF = ramp([[0, '#1f78ff'], [0.55, '#4f6cff'], [0.8, '#b04dff'], [1, '#ff5a8a']]), headS = ramp([[0, '#ff4d3a'], [0.5, '#ff8a1f'], [1, '#ffc21a']]);
+  const greenF = ramp([[0, '#1fa860'], [1, '#2fc98a']]);
+  const person = (name, x, z, w, h, r, bodyFront) => {
+    const p = new THREE.Group(); p.name = name; p.position.set(x, 0, z); g.add(p);
+    const bg = ext(arch(w, h), 0.5, 0.1);
+    paint(bg, bodyFront, (v, o) => RB(0.62 + v.x * 0.35 - v.y * 0.1, o));
+    mesh(name + '_cuerpo', bg, gloss(name + '_cuerpo_mat'), 0, 0, 0, p);
+    const hg = ext(circle(r), 0.36, 0.08);
+    paint(hg, (v, o) => headF((v.x / r + 1) / 2 * 0.85 + v.y * 0.2, o), (v, o) => headS((v.y / r + 1) / 2, o));
+    mesh(name + '_cabeza', hg, gloss(name + '_cabeza_mat'), 0, h + r * 1.02, 0, p);
+    return p;
+  };
+  const ppl = [
+    person('persona_izq', -1.0, 0.18, 1.12, 0.84, 0.34, (v, o) => o.copy(WHITE)),
+    person('persona_der', 1.0, 0.18, 1.12, 0.84, 0.34, (v, o) => o.copy(WHITE)),
+    person('persona_centro', 0, -0.32, 1.26, 1.06, 0.42, (v, o) => greenF(v.y / 1.1, o)),
+  ];
+  g.rotation.set(0.06, -0.3, 0);
+  return { obj: g, view: new V3(0, 0.14, 1), tick: (t) => ppl.forEach((p, i) => { p.position.y = Math.max(0, Math.sin(t * 2.2 + i * 2.1)) * 0.05; }) };
+}
+
+function roundPoly(P, k = 0.18) {
+  const s = new THREE.Shape(), lp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  P.forEach((c, i) => { const prev = P[(i + P.length - 1) % P.length], next = P[(i + 1) % P.length], kk = c[2] ?? k, a = lp(c, prev, kk), b = lp(c, next, kk);
+    i === 0 ? s.moveTo(...a) : s.lineTo(...a); s.quadraticCurveTo(c[0], c[1], ...b); });
+  s.closePath(); return s;
+}
+const sideRB = (off = 0, kx = 0.18, ky = 0.12) => (v, o) => RB(off + v.x * kx - v.y * ky, o);
+const whiteF = (v, o) => o.copy(WHITE);
+function buildMountain() {
+  const g = new THREE.Group(); g.name = 'icono_montanas';
+  const body = roundPoly([[-1.55, 0, 0.06], [1.55, 0, 0.06], [0.98, 1.08, 0.16], [0.64, 1.0, 0.12], [0.05, 1.62, 0.14], [-0.55, 0.9, 0.1], [-0.88, 1.12, 0.14]]);
+  const bg = ext(body, 0.6, 0.09), bf = ramp([[0, '#3f6cff'], [0.45, '#1f8cff'], [0.75, '#22b8a0'], [1, '#27c26e']]);
+  paint(bg, (v, o) => bf((v.x + 1.5) / 3 - v.y * 0.1, o), sideRB(0.36, 0.16, 0.1));
+  mesh('montana', bg, gloss('montana_mat'), 0, 0, 0, g);
+  const snow = roundPoly([[-1.02, 0.8, 0.12], [-0.88, 1.03, 0.2], [-0.56, 0.82, 0.14], [0.05, 1.53, 0.14], [0.56, 0.98, 0.14], [0.3, 0.84, 0.1], [0.08, 1.02, 0.1], [-0.2, 0.66, 0.1], [-0.44, 0.78, 0.1], [-0.72, 0.56, 0.1], [-0.93, 0.7, 0.1]]);
+  const sg = ext(snow, 0.06, 0.04, 4);
+  paintFn(sg, (v, n, o) => o.copy(WHITE));
+  mesh('nieve', sg, gloss('nieve_mat'), 0, 0, 0.39, g);
+  g.rotation.set(0.06, -0.38, 0);
+  return { obj: g, view: new V3(0, 0.08, 1) };
+}
+function buildArch() {
+  const g = new THREE.Group(); g.name = 'icono_arco';
+  const s = new THREE.Shape(), R = 0.98, r = 0.42, H = 1.05;
+  s.moveTo(-R, 0); s.lineTo(-r, 0); s.lineTo(-r, H); s.absarc(0, H, r, Math.PI, 0, true); s.lineTo(r, 0); s.lineTo(R, 0); s.lineTo(R, H); s.absarc(0, H, R, 0, Math.PI, false); s.lineTo(-R, 0);
+  const ag = ext(s, 0.62, 0.08);
+  paint(ag, whiteF, sideRB(0.12, 0.28, 0.1));
+  mesh('arco', ag, gloss('arco_mat'), 0, 0.1, 0, g);
+  [-1, 1].forEach(sd => {
+    const lg = rbox(0.66, 0.92, 0.78, 0.1);
+    paint(lg, whiteF, (v, o) => RB(sd > 0 ? 0.58 + v.y * 0.2 : 0.02 + v.y * 0.3, o));
+    mesh(sd > 0 ? 'pata_der' : 'pata_izq', lg, gloss('pata_mat'), sd * 0.7, 0.46, 0.04, g);
+  });
+  const kg = rbox(0.5, 0.34, 0.8, 0.08);
+  paint(kg, whiteF, (v, o) => RB(0.8 + v.x * 0.5, o));
+  mesh('clave', kg, gloss('clave_mat'), 0, 0.1 + H + R + 0.06, 0.02, g);
+  g.rotation.set(0.06, -0.42, 0);
+  return { obj: g, view: new V3(0, 0.08, 1) };
+}
+function buildBalcony() {
+  const g = new THREE.Group(); g.name = 'icono_balcon';
+  const blue = '#1f6fe5';
+  const wall = rbox(1.8, 1.55, 0.75, 0.1);
+  paint(wall, solid('#2a7bff'), (v, o) => RB(0.2 + v.y * 0.35, o));
+  mesh('fachada', wall, gloss('fachada_mat'), 0, 1.0, -0.05, g);
+  const fr = new THREE.Shape(); const W = 0.82, H = 0.55;
+  fr.moveTo(-W, -H); fr.lineTo(W, -H); fr.lineTo(W, H); fr.lineTo(-W, H); fr.lineTo(-W, -H);
+  [[-0.72, -0.08], [0.08, 0.72]].forEach(([a, b]) => { const h = new THREE.Path(); h.moveTo(a, -0.42); h.lineTo(a, 0.42); h.lineTo(b, 0.42); h.lineTo(b, -0.42); h.lineTo(a, -0.42); fr.holes.push(h); });
+  const fg = ext(fr, 0.1, 0.04, 4);
+  paintFn(fg, (v, n, o) => o.copy(WHITE));
+  mesh('marco', fg, gloss('marco_mat'), 0, 1.22, 0.38, g);
+  const cg = rbox(2.05, 0.3, 1.0, 0.1);
+  paint(cg, whiteF, (v, o) => RB(0.75 + v.x * 0.14 + v.z * 0.1, o), 0.55, 0.9);
+  mesh('cornisa', cg, gloss('cornisa_mat'), 0, 1.9, 0.02, g);
+  const base = rbox(2.0, 0.22, 1.25, 0.08); paint(base, whiteF, sideRB(0.3));
+  mesh('base', base, gloss('base_mat'), 0, 0.11, 0.2, g);
+  const bm = gloss('baranda_mat'), sb = (geo) => paintFn(geo, (v, n, o) => o.set(blue));
+  mesh('piso', sb(rbox(1.95, 0.12, 0.62, 0.05)), bm, 0, 0.28, 0.5, g);
+  mesh('pasamanos', sb(rbox(1.98, 0.13, 0.16, 0.06)), bm, 0, 0.94, 0.78, g);
+  for (let i = 0; i < 7; i++) mesh('barrote_' + i, sb(new THREE.CapsuleGeometry(0.06, 0.5, 6, 16)), bm, -0.84 + i * 0.28, 0.61, 0.78, g);
+  const flower = (name, x, y, z, s) => {
+    const f = new THREE.Group(); f.name = name; f.position.set(x, y, z); f.scale.setScalar(s); g.add(f);
+    for (let i = 0; i < 2; i++) { const l = mesh('hoja_' + i, paintFn(new THREE.SphereGeometry(0.2, 24, 16), (v, n, o) => o.set('#22a34a')), gloss('hoja_mat'), (i ? 0.2 : -0.22), -0.18, -0.05, f); l.scale.set(1, 0.55, 0.45); l.rotation.z = i ? -0.5 : 0.5; }
+    for (let i = 0; i < 5; i++) { const a = i / 5 * TAU + 0.3, p = mesh('petalo_' + i, paintFn(new THREE.SphereGeometry(0.13, 24, 16), (v, n, o) => o.set('#f0402e')), gloss('petalo_mat'), Math.cos(a) * 0.15, Math.sin(a) * 0.15, 0, f); p.scale.z = 0.55; }
+    mesh('centro', paintFn(new THREE.SphereGeometry(0.075, 20, 14), (v, n, o) => o.set('#7c8494')), gloss('centro_mat'), 0, 0, 0.05, f);
+  };
+  flower('flor_1', -0.88, 1.02, 0.95, 1); flower('flor_2', -0.42, 0.98, 0.98, 0.92);
+  g.rotation.set(0.06, -0.4, 0);
+  return { obj: g, view: new V3(0, 0.1, 1) };
+}
+function buildBook() {
+  const g = new THREE.Group(); g.name = 'icono_libro';
+  const cv = new THREE.Shape();
+  cv.moveTo(0, -0.14); cv.quadraticCurveTo(0.7, 0.18, 1.42, 0.0); cv.lineTo(1.42, 1.5); cv.quadraticCurveTo(0.66, 1.74, 0, 1.4);
+  cv.quadraticCurveTo(-0.66, 1.74, -1.42, 1.5); cv.lineTo(-1.42, 0.0); cv.quadraticCurveTo(-0.7, 0.18, 0, -0.14);
+  const cg = ext(cv, 0.9, 0.08);
+  paint(cg, (v, o) => RB(0.02 + (v.x + 1.4) / 2.8 * 0.8, o), (v, o) => RB(0.05 + (v.x + 1.4) / 2.8 * 0.75 + v.y * 0.06, o));
+  mesh('tapa', cg, gloss('tapa_mat'), 0, -0.02, -0.08, g);
+  [-1, 1].forEach(sd => {
+    const p = new THREE.Shape(), X = x => sd * x;
+    p.moveTo(X(0.04), 0.04); p.quadraticCurveTo(X(0.65), 0.3, X(1.3), 0.14); p.lineTo(X(1.3), 1.5); p.quadraticCurveTo(X(0.65), 1.7, X(0.04), 1.42); p.lineTo(X(0.04), 0.04);
+    const pg = ext(p, 0.72, 0.07);
+    paint(pg, whiteF, (v, o) => o.copy(WHITE).lerp(new THREE.Color('#e9ecf4'), 0.6));
+    mesh(sd > 0 ? 'pagina_der' : 'pagina_izq', pg, gloss('pagina_mat'), 0, 0, 0.14, g);
+  });
+  g.rotation.set(0.1, -0.32, 0);
+  return { obj: g, view: new V3(0, 0.12, 1) };
+}
+function buildChurch() {
+  const g = new THREE.Group(); g.name = 'icono_iglesia';
+  const archS = (w, h) => { const s = new THREE.Shape(), r = w / 2; s.moveTo(-r, 0); s.lineTo(r, 0); s.lineTo(r, h - r); s.absarc(0, h - r, r, 0, Math.PI, false); s.lineTo(-r, 0); return s; };
+  const inset = (name, w, h, x, y, z) => { const ig = ext(archS(w, h), 0.02, 0.02, 3); paintFn(ig, (v, n, o) => RB(0.02 + v.y * 0.5 + v.x * 0.3, o)); mesh(name, ig, gloss(name + '_mat'), x, y, z, g); };
+  const nave = rbox(1.32, 1.12, 0.74, 0.08); paint(nave, whiteF, sideRB(0.6, 0.3, 0.2));
+  mesh('nave', nave, gloss('nave_mat'), 0, 0.56, 0, g);
+  inset('puerta', 0.52, 0.8, 0, 0, 0.385);
+  const tower = rbox(0.82, 0.98, 0.66, 0.08); paint(tower, whiteF, sideRB(0.3, 0.2, 0.2));
+  mesh('torre', tower, gloss('torre_mat'), 0, 1.6, -0.02, g);
+  inset('ventana', 0.26, 0.52, 0, 1.32, 0.325);
+  const L = rbox(0.62, 0.92, 0.6, 0.08); paint(L, (v, o) => RB(0.62 + v.y * 0.3 - v.x * 0.3, o), (v, o) => RB(0.5 + v.y * 0.25, o));
+  mesh('ala_izq', L, gloss('ala_izq_mat'), -0.95, 0.46, -0.02, g);
+  const hs = roundPoly([[-0.3, 0, 0.05], [0.3, 0, 0.05], [0.3, 0.72, 0.12], [0.02, 0.98, 0.12], [-0.3, 0.98, 0.05]]);
+  const R = ext(hs, 0.52, 0.07); paint(R, (v, o) => RB(0.12 + v.y * 0.2 + v.x * 0.2, o), (v, o) => RB(0.9 + v.y * 0.25, o));
+  mesh('ala_der', R, gloss('ala_der_mat'), 0.96, 0, -0.02, g);
+  const ds = new THREE.Shape(); ds.moveTo(-0.36, 0); ds.lineTo(0.36, 0); ds.absarc(0, 0, 0.36, 0, Math.PI, false);
+  const dg = ext(ds, 0.46, 0.06), dr = ramp([[0, '#1f78ff'], [0.6, '#6a5cff'], [1, '#ff4d9a']]);
+  paint(dg, (v, o) => dr((v.x + 0.36) / 0.72, o), (v, o) => dr((v.x + 0.4) / 0.8, o));
+  mesh('cupula', dg, gloss('cupula_mat'), 0, 2.1, -0.02, g);
+  const red = (geo) => paintFn(geo, (v, n, o) => o.set('#f0402e').lerp(new THREE.Color('#ff7a2a'), Math.max(0, v.y * 0.8)));
+  mesh('cruz_v', red(rbox(0.13, 0.48, 0.13, 0.04)), gloss('cruz_mat'), 0, 2.72, -0.02, g);
+  mesh('cruz_h', red(rbox(0.38, 0.13, 0.13, 0.04)), gloss('cruz_mat'), 0, 2.8, -0.02, g);
+  g.rotation.set(0.05, -0.38, 0);
+  return { obj: g, view: new V3(0, 0.08, 1) };
+}
+const builders = { code: buildCode, top: buildTop, angel: buildAngel, kite: buildKite, people: buildPeople, mountain: buildMountain, arch: buildArch, balcony: buildBalcony, book: buildBook, church: buildChurch };
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(1); renderer.setClearColor(0x000000, 0);
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.02;
+let RW = 0, RH = 0;
+const ensure = (w, h) => { if (w > RW || h > RH) { RW = Math.max(RW, w); RH = Math.max(RH, h); renderer.setSize(RW, RH, false); } };
+const env = (() => {
+  const pm = new THREE.PMREMGenerator(renderer), s = new THREE.Scene();
+  s.add(new THREE.Mesh(new THREE.BoxGeometry(20, 20, 20), new THREE.MeshBasicMaterial({ color: 0xdfe4ee, side: THREE.BackSide })));
+  const lp = (x, y, z, w, h, i) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 1, 1).multiplyScalar(i) })); m.position.set(x, y, z); m.lookAt(0, 0, 0); s.add(m); };
+  lp(0, 8, 4, 10, 4, 3); lp(-8, 2, 4, 3, 7, 2.2); lp(7, 3, -4, 4, 7, 1.6); lp(3, -2, 8, 6, 2, 1.2);
+  const tex = pm.fromScene(s, 0.04).texture; pm.dispose(); return tex;
+})();
+
+const views = canvases.map((cv, idx) => {
+  const build = builders[cv.dataset.icon3d];
+  if (!build) return null;
+  const scene = new THREE.Scene(); scene.environment = env; scene.environmentIntensity = 0.7;
+  scene.add(new THREE.HemisphereLight(0xeef4ff, 0xfff3e4, 0.9));
+  const key = new THREE.DirectionalLight(0xffffff, 1.9); key.position.set(3, 6, 5); key.castShadow = true;
+  key.shadow.mapSize.set(512, 512); key.shadow.bias = -0.0002; key.shadow.normalBias = 0.02; key.shadow.radius = 6;
+  scene.add(key); scene.add(key.target);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.5); fill.position.set(-4, 3, -3); scene.add(fill);
+  const { obj, view, tick, shadow = 0.1 } = build();
+  const pivot = new THREE.Group();
+  const box = new THREE.Box3().setFromObject(obj), c = box.getCenter(new V3());
+  obj.position.sub(c); pivot.add(obj);
+  pivot.position.y = box.getSize(new V3()).y / 2;
+  pivot.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  scene.add(pivot);
+  const shOpacity = cv.dataset.shadow != null ? +cv.dataset.shadow : shadow;
+  if (shOpacity > 0) {
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: shOpacity }));
+    ground.rotation.x = -Math.PI / 2; ground.position.y = -0.06; ground.receiveShadow = true; scene.add(ground);
+  }
+  const sphere = new THREE.Box3().setFromObject(pivot).getBoundingSphere(new THREE.Sphere());
+  const span = sphere.radius * 3, sc = key.shadow.camera; sc.left = -span; sc.right = span; sc.top = span; sc.bottom = -span; sc.updateProjectionMatrix();
+  key.target.position.copy(sphere.center);
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 100);
+  return { cv, ctx: cv.getContext('2d'), scene, camera, pivot, tick, view, sphere, baseY: pivot.position.y, baseRy: pivot.rotation.y, ph: idx * 1.7, w: 0, h: 0, visible: false, dirty: true };
+}).filter(Boolean);
+
+function fit(v) {
+  const w = Math.max(1, Math.round(v.cv.clientWidth * DPR)), h = Math.max(1, Math.round(v.cv.clientHeight * DPR));
+  if (w === v.w && h === v.h) return;
+  v.w = w; v.h = h; v.cv.width = w; v.cv.height = h;
+  v.camera.aspect = w / h;
+  const vh = v.camera.fov * D / 2, hh = Math.atan(Math.tan(vh) * v.camera.aspect);
+  const dist = v.sphere.radius / Math.tan(Math.min(vh, hh)) * parseFloat(v.cv.dataset.pad || '1');
+  v.camera.position.copy(v.sphere.center).add(v.view.clone().normalize().multiplyScalar(dist));
+  v.camera.near = dist / 20; v.camera.far = dist * 4; v.camera.updateProjectionMatrix();
+  v.camera.lookAt(v.sphere.center);
+  ensure(w, h);
+}
+addEventListener('resize', () => views.forEach(v => { v.dirty = true; }), { passive: true });
+
+let T = 0, last = performance.now();
+renderer.setAnimationLoop(() => {
+  const now = performance.now(), dt = Math.min((now - last) / 1000, 0.05); last = now;
+  if (document.hidden) return;
+  T += dt;
+  const vh = innerHeight, vw = innerWidth;
+  for (const v of views) {
+    // visibilidad por posición (más fiable que IntersectionObserver con pin/scroll suave)
+    const r = v.cv.getBoundingClientRect();
+    const vis = r.width > 0 && r.bottom > -120 && r.top < vh + 120 && r.right > 0 && r.left < vw;
+    if (vis && !v.visible) v.dirty = true;
+    v.visible = vis;
+    if (!v.visible) continue;
+    if (reduceMotion && !v.dirty) continue;
+    if (v.dirty) { fit(v); v.dirty = false; }
+    if (!reduceMotion) {
+      v.pivot.position.y = v.baseY + Math.sin(T * 1.2 + v.ph) * 0.04;
+      v.pivot.rotation.y = v.baseRy + Math.sin(T * 0.5 + v.ph) * 0.14;
+      v.tick && v.tick(T);
+    }
+    renderer.setViewport(0, 0, v.w, v.h); renderer.setScissor(0, 0, v.w, v.h); renderer.setScissorTest(true);
+    renderer.render(v.scene, v.camera);
+    v.ctx.clearRect(0, 0, v.w, v.h);
+    v.ctx.drawImage(renderer.domElement, 0, RH - v.h, v.w, v.h, 0, 0, v.w, v.h);
+  }
+});
+}
